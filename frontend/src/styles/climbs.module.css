@@ -1,0 +1,50 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    align-items: center;
+  }
+  
+  .content {
+    flex: 1;
+    padding: 20px;
+    width: 75%;
+  }
+  
+  .title {
+    text-align: center;
+    font-weight: bold;
+    font-size: 36px; /* Larger font size */
+    padding-bottom: 20px;
+  }
+  
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0 auto; /* Center the table */
+  }
+  
+  .table th, .table td {
+    border-bottom: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+  }
+  
+  .table th {
+    background-color: #f4f4f4;
+    font-weight: bold;
+  }
+  
+  .wideColumn {
+    width: 30%;
+  }
+  
+  .narrowColumn {
+    width: 10%;
+  }
+  
+  .link {
+    color: #0070f3;
+    text-decoration: none;
+  }
+  
