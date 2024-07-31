@@ -1,0 +1,43 @@
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+/.next
+
+# Python
+venv/
+__pycache__/
+*.py[cod]
+*.egg
+*.egg-info/
+dist/
+build/
+*.egg-info/
+*.eggs/
+*.pytest_cache/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Environment variables
+.env
+
+# .*
+.*
+
+# Extras
+.tools
+
+# Logs
+*.log
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# IDE-specific files
+.vscode/
+.idea/
+
+# Docker
+docker-compose.override.yml
