@@ -15,6 +15,11 @@ export default function Home() {
     }
   }, [router]);
 
+  const handleViewClimbs = () => {
+    console.log('Navigating to /climbs');
+    router.push('/climbs');
+  };
+
   if (!isAuthenticated) {
     return null; // or a loading spinner
   }
@@ -28,9 +33,9 @@ export default function Home() {
           <Link href="/add_climb" legacyBehavior>
             <a style={styles.link}>Add a Climb</a>
           </Link>
-          <Link href="/climbs" legacyBehavior>
-            <a style={styles.link}>View Climbs</a>
-          </Link>
+          <button onClick={handleViewClimbs} style={styles.link}>
+            View Climbs
+          </button>
         </div>
       </main>
     </div>
@@ -75,6 +80,6 @@ const styles = {
     textDecoration: 'none',
     borderRadius: '5px',
     marginRight: '10px', // Add margin for spacing between links
+    cursor: 'pointer',
   },
 };
-

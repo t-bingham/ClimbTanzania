@@ -56,6 +56,12 @@ Before you begin, ensure you have met the following requirements:
    uvicorn main:app --reload
    ```
 
+   or 
+   ```sh
+   cd backend
+   python -m uvicorn main:app --reload
+   ```
+
 2. **Start the frontend server:**
    ```sh
    cd frontend

@@ -1,7 +1,6 @@
 import React from 'react';
 import axios from 'axios';
 import Link from 'next/link';
-import Header from '../components/header';
 import styles from '../styles/climbs.module.css';
 
 const Climbs = ({ climbs }) => {
@@ -9,7 +8,6 @@ const Climbs = ({ climbs }) => {
 
   return (
     <div className={styles.container}>
-      <Header />
       <div className={styles.content}>
         <h1 className={styles.title}>Climb Index</h1>
         <table className={styles.table}>
@@ -47,6 +45,7 @@ const Climbs = ({ climbs }) => {
 
 export async function getServerSideProps() {
   try {
+    console.log('Fetching climbs data...');
     const response = await axios.get('http://localhost:8000/climbs/');
     console.log('Fetched climbs:', response.data);
     return {
