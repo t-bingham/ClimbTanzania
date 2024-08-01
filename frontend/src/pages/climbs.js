@@ -1,7 +1,7 @@
 import React from 'react';
 import axios from 'axios';
 import Link from 'next/link';
-import styles from '../styles/climbs.module.css';
+import styles from '../styles/index_layout.module.css'; // Ensure this is the correct path
 
 const Climbs = ({ climbs }) => {
   console.log('Climbs data:', climbs);
@@ -15,6 +15,7 @@ const Climbs = ({ climbs }) => {
             <tr>
               <th className={styles.wideColumn}>Name</th>
               <th className={styles.narrowColumn}>Grade</th>
+              <th className={styles.wideColumn}>Type</th>
               <th className={styles.wideColumn}>Area</th>
               <th className={styles.wideColumn}>First Ascensionist</th>
               <th className={styles.narrowColumn}>First Ascent Year</th>
@@ -29,6 +30,7 @@ const Climbs = ({ climbs }) => {
                   </Link>
                 </td>
                 <td className={styles.narrowColumn}>{climb.grade || 'N/A'}</td>
+                <td className={styles.wideColumn}>{climb.type || 'N/A'}</td>
                 <td className={styles.wideColumn}>{climb.area || 'N/A'}</td>
                 <td className={styles.wideColumn}>{climb.first_ascensionist || 'N/A'}</td>
                 <td className={styles.narrowColumn}>
@@ -45,7 +47,6 @@ const Climbs = ({ climbs }) => {
 
 export async function getServerSideProps() {
   try {
-    console.log('Fetching climbs data...');
     const response = await axios.get('http://localhost:8000/climbs/');
     console.log('Fetched climbs:', response.data);
     return {

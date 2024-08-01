@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import DropdownMenu from './dropdown_menu'; // Ensure this is the correct path to your dropdown_menu component
 
 const Header = () => {
   return (
@@ -7,6 +8,9 @@ const Header = () => {
         <Link href="/">
           <img src="/logo.png" alt="Logo" style={styles.logo} />
         </Link>
+        <nav style={styles.nav}>
+          <DropdownMenu />
+        </nav>
       </div>
     </header>
   );
@@ -22,6 +26,8 @@ const styles = {
     borderBottom: '1px solid #ddd',
     padding: '10px 0',
     zIndex: 100000,
+    display: 'flex',
+    alignItems: 'center',
   },
   logoContainer: {
     display: 'flex',
@@ -34,14 +40,8 @@ const styles = {
   },
   nav: {
     display: 'flex',
-    justifyContent: 'flex-end',
-    paddingRight: '20px',
-  },
-  navLink: {
-    marginLeft: '20px',
-    textDecoration: 'none',
-    color: '#000',
-    cursor: 'pointer',
+    justifyContent: 'flex-start',
+    paddingLeft: '30px', // Add padding to the left of the dropdown menu
   },
 };
 

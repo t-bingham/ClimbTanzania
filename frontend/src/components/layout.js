@@ -1,7 +1,7 @@
 import React from 'react';
 import { useRouter } from 'next/router';
-import Header from './header'; // Ensure this is the correct path to your header component
-import Footer from './footer'; // Ensure this is the correct path to your footer component
+import Header from './header';
+import Footer from './footer';
 
 const Layout = ({ children }) => {
   const router = useRouter();
