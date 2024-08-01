@@ -102,13 +102,16 @@ def create_climb(climb: schemas.ClimbCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail=f"Error inserting climb: {e}")
 
 @app.get("/climbs/", response_model=List[schemas.Climb])
-def read_climbs(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
-    try:
-        climbs = db.query(models.Climb).offset(skip).limit(limit).all()
-        return climbs
-    except Exception as e:
-        logger.error(f"Error reading climbs: {e}")
-        raise HTTPException(status_code=500, detail=f"Error reading climbs: {e}")
+def read_climbs(skip: int = 0, limit: int = 10, grades: str = None, type: str = None, db: Session = Depends(get_db)):
+    query = db.query(models.Climb)
+    if grades:
+        grade_list = grades.split(',')
+        query = query.filter(models.Climb.grade.in_(grade_list))
+    if type:
+        query = query.filter(models.Climb.type == type)
+    climbs = query.offset(skip).limit(limit).all()
+    return climbs
+
 
 @app.get("/climbs/{id}", response_model=schemas.Climb)
 def read_climb(id: int, db: Session = Depends(get_db)):

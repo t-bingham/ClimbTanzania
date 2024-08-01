@@ -1,0 +1,49 @@
+.filterButton {
+    padding: 10px 20px;
+    background-color: #0070f3;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .filterContainer {
+    padding: 10px;
+    background-color: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin-top: 10px;
+  }
+  
+  .filterSection {
+    margin-bottom: 15px;
+  }
+  
+  .checkboxGroup {
+    display: flex;
+    flex-wrap: wrap;
+  }
+  
+  .checkboxContainer {
+    display: flex;
+    align-items: center;
+    margin-right: 10px;
+  }
+  
+  .checkbox {
+    margin-right: 5px;
+  }
+  
+  .checkboxLabel {
+    font-size: 1rem;
+  }
+  
+  .applyButton {
+    padding: 10px 20px;
+    background-color: #28a745;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  

@@ -1,15 +1,36 @@
-import React from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
 import Link from 'next/link';
-import styles from '../styles/index_layout.module.css'; // Ensure this is the correct path
+import GradeFilter from '../components/grade_filter';
+import styles from '../styles/climbs.module.css';
 
-const SportIndex = ({ sports }) => {
-  console.log('Sports data:', sports);
+const SportIndex = ({ initialClimbs }) => {
+  const [climbs, setClimbs] = useState(initialClimbs);
+
+  const applyFilters = async (selectedGrades) => {
+    try {
+      const response = await axios.get('http://localhost:8000/climbs/', {
+        params: {
+          type: 'Sport',
+          grades: selectedGrades.join(',')
+        }
+      });
+      setClimbs(response.data);
+    } catch (error) {
+      console.error('Error fetching filtered climbs:', error);
+    }
+  };
 
   return (
     <div className={styles.container}>
       <div className={styles.content}>
         <h1 className={styles.title}>Sport Index</h1>
+        <GradeFilter
+          grades={[
+            '4', '5a', '5b', '5c', '6a', '6a+', '6b', '6b+', '6c', '6c+', '7a', '7a+', '7b', '7b+', '7c', '7c+', '8a', '8a+', '8b', '8b+', '8c', '8c+', '9a', '9a+', '9b', '9b+', '9c'
+          ]}
+          onApply={applyFilters}
+        />
         <table className={styles.table}>
           <thead>
             <tr>
@@ -21,18 +42,18 @@ const SportIndex = ({ sports }) => {
             </tr>
           </thead>
           <tbody>
-            {sports.map(sport => (
-              <tr key={sport.id}>
+            {climbs.map(climb => (
+              <tr key={climb.id}>
                 <td className={styles.wideColumn}>
-                  <Link href={`/node/${sport.id}`} legacyBehavior>
-                    <a className={styles.link}>{sport.name}</a>
+                  <Link href={`/node/${climb.id}`} legacyBehavior>
+                    <a className={styles.link}>{climb.name}</a>
                   </Link>
                 </td>
-                <td className={styles.narrowColumn}>{sport.grade || 'N/A'}</td>
-                <td className={styles.wideColumn}>{sport.area || 'N/A'}</td>
-                <td className={styles.wideColumn}>{sport.first_ascensionist || 'N/A'}</td>
+                <td className={styles.narrowColumn}>{climb.grade || 'N/A'}</td>
+                <td className={styles.wideColumn}>{climb.area || 'N/A'}</td>
+                <td className={styles.wideColumn}>{climb.first_ascensionist || 'N/A'}</td>
                 <td className={styles.narrowColumn}>
-                  {sport.first_ascent_date ? new Date(sport.first_ascent_date).getFullYear() : 'N/A'}
+                  {climb.first_ascent_date ? new Date(climb.first_ascent_date).getFullYear() : 'N/A'}
                 </td>
               </tr>
             ))}
@@ -45,19 +66,19 @@ const SportIndex = ({ sports }) => {
 
 export async function getServerSideProps() {
   try {
-    const response = await axios.get('http://localhost:8000/climbs/');
-    const sports = response.data.filter(climb => climb.type === 'Sport');
-    console.log('Fetched sports:', sports);
+    const response = await axios.get('http://localhost:8000/climbs/', {
+      params: { type: 'Sport' }
+    });
     return {
       props: {
-        sports,
+        initialClimbs: response.data,
       },
     };
   } catch (error) {
-    console.error('Error fetching sports:', error);
+    console.error('Error fetching climbs:', error);
     return {
       props: {
-        sports: [],
+        initialClimbs: [],
       },
     };
   }
