@@ -2,6 +2,19 @@ import Link from 'next/link';
 import DropdownMenu from './dropdown_menu'; // Ensure this is the correct path to your dropdown_menu component
 
 const Header = () => {
+  const indexOptions = [
+    { href: '/climbs', label: 'Climbs Index' },
+    { href: '/boulder_index', label: 'Boulder Index' },
+    { href: '/sport_index', label: 'Sport Index' },
+    { href: '/trad_index', label: 'Trad Index' },
+  ];
+
+  const mapOptions = [
+    { href: '/boulder_map', label: 'Boulder Map' },
+    { href: '/sport_map', label: 'Sport Map' },
+    { href: '/trad_map', label: 'Trad Map' },
+  ];
+
   return (
     <header style={styles.header}>
       <div style={styles.logoContainer}>
@@ -9,7 +22,8 @@ const Header = () => {
           <img src="/logo.png" alt="Logo" style={styles.logo} />
         </Link>
         <nav style={styles.nav}>
-          <DropdownMenu />
+          <DropdownMenu label="Indexes" options={indexOptions} />
+          <DropdownMenu label="Maps" options={mapOptions} />
         </nav>
       </div>
     </header>

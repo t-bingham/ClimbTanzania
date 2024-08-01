@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import styles from '../styles/dropdown_menu.module.css';
 
-const DropdownMenu = () => {
+const DropdownMenu = ({ label, options }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
@@ -13,34 +14,31 @@ const DropdownMenu = () => {
     setIsOpen(false);
   };
 
+  const handleClickOutside = (event) => {
+    if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+      closeMenu();
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   return (
-    <div className={styles.dropdown}>
+    <div className={styles.dropdown} ref={dropdownRef}>
       <button className={styles.dropbtn} onClick={toggleMenu}>
-        Indexes {isOpen ? '▲' : '▼'}
+        {label} {isOpen ? '▲' : '▼'}
       </button>
       {isOpen && (
         <div className={styles.dropdownContent}>
-          <Link href="/climbs" legacyBehavior>
-            <a onClick={closeMenu}>Climbs Index</a>
-          </Link>
-          <Link href="/boulder_index" legacyBehavior>
-            <a onClick={closeMenu}>Boulder Index</a>
-          </Link>
-          <Link href="/sport_index" legacyBehavior>
-            <a onClick={closeMenu}>Sport Index</a>
-          </Link>
-          <Link href="/trad_index" legacyBehavior>
-            <a onClick={closeMenu}>Trad Index</a>
-          </Link>
-          <Link href="/boulder_map" legacyBehavior>
-            <a onClick={closeMenu}>Boulder Map</a>
-          </Link>
-          <Link href="/sport_map" legacyBehavior>
-            <a onClick={closeMenu}>Sport Map</a>
-          </Link>
-          <Link href="/trad_map" legacyBehavior>
-            <a onClick={closeMenu}>Trad Map</a>
-          </Link>
+          {options.map((option, index) => (
+            <Link href={option.href} key={index} legacyBehavior>
+              <a onClick={closeMenu}>{option.label}</a>
+            </Link>
+          ))}
         </div>
       )}
     </div>
