@@ -1,36 +1,45 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
-import styles from '../styles/dropdown_menu.module.css'; // Ensure the path is correct
+import styles from '../styles/dropdown_menu.module.css';
 
 const DropdownMenu = () => {
   const [isOpen, setIsOpen] = useState(false);
 
-  const toggleDropdown = () => {
+  const toggleMenu = () => {
     setIsOpen(!isOpen);
   };
 
-  const closeDropdown = () => {
+  const closeMenu = () => {
     setIsOpen(false);
   };
 
   return (
     <div className={styles.dropdown}>
-      <button onClick={toggleDropdown} className={styles.dropbtn}>
-        Indexes &#x25BC;
+      <button className={styles.dropbtn} onClick={toggleMenu}>
+        Indexes {isOpen ? '▲' : '▼'}
       </button>
       {isOpen && (
         <div className={styles.dropdownContent}>
           <Link href="/climbs" legacyBehavior>
-            <a onClick={closeDropdown}>Climbs Index</a>
+            <a onClick={closeMenu}>Climbs Index</a>
           </Link>
           <Link href="/boulder_index" legacyBehavior>
-            <a onClick={closeDropdown}>Boulder Index</a>
+            <a onClick={closeMenu}>Boulder Index</a>
           </Link>
           <Link href="/sport_index" legacyBehavior>
-            <a onClick={closeDropdown}>Sport Index</a>
+            <a onClick={closeMenu}>Sport Index</a>
           </Link>
           <Link href="/trad_index" legacyBehavior>
-            <a onClick={closeDropdown}>Trad Index</a>
+            <a onClick={closeMenu}>Trad Index</a>
+          </Link>
+          <Link href="/boulder_map" legacyBehavior>
+            <a onClick={closeMenu}>Boulder Map</a>
+          </Link>
+          <Link href="/sport_map" legacyBehavior>
+            <a onClick={closeMenu}>Sport Map</a>
+          </Link>
+          <Link href="/trad_map" legacyBehavior>
+            <a onClick={closeMenu}>Trad Map</a>
           </Link>
         </div>
       )}
