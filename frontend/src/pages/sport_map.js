@@ -1,66 +1,76 @@
-import React from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
 import dynamic from 'next/dynamic';
+import GradeFilter from '../components/grade_filter';
+import climbsStyles from '../styles/climbs.module.css';
 
 const LeafletMap = dynamic(() => import('../components/multi_pins_map'), { ssr: false });
 
-const SportMap = ({ climbs }) => {
-  const pins = climbs.map(climb => ({
+const SportMap = ({ initialClimbs, initialSelectedGrades }) => {
+  const [climbs, setClimbs] = useState(initialClimbs);
+  const [selectedGrades, setSelectedGrades] = useState(initialSelectedGrades);
+
+  const applyFilters = async (selectedGrades) => {
+    try {
+      const response = await axios.get('http://localhost:8000/climbs/', {
+        params: {
+          type: 'Sport',
+          grades: selectedGrades.join(',')
+        }
+      });
+      setClimbs(response.data);
+      setSelectedGrades(selectedGrades); // Update selected grades
+    } catch (error) {
+      console.error('Error fetching filtered climbs:', error);
+    }
+  };
+
+  const pins = climbs?.map(climb => ({
     position: [climb.latitude, climb.longitude],
     name: climb.name,
     grade: climb.grade,
     id: climb.id,
-  }));
+  })) || [];
 
   return (
-    <div style={styles.container}>
-      <main style={styles.content}>
-        <h1 style={styles.title}>Sport Map</h1>
+    <div className={climbsStyles.container}>
+      <div className={climbsStyles.content}>
+        <h1 className={climbsStyles.title}>Sport Map</h1>
+        <GradeFilter
+          onApply={applyFilters}
+          initialSelectedGrades={selectedGrades} // Pass the selected grades to the filter component
+          grades={[
+            '4', '5a', '5b', '5c', '6a', '6a+', '6b', '6b+', '6c', '6c+', '7a', '7a+', '7b', '7b+', '7c', '7c+', '8a', '8a+', '8b', '8b+', '8c', '8c+', '9a', '9a+', '9b', '9b+', '9c'
+          ]}
+        />
         <LeafletMap pins={pins} />
-      </main>
+      </div>
     </div>
   );
 };
 
 export async function getServerSideProps() {
   try {
-    const response = await axios.get('http://localhost:8000/climbs?type=Sport');
+    const response = await axios.get('http://localhost:8000/climbs/', {
+      params: {
+        type: 'Sport'
+      }
+    });
     return {
       props: {
-        climbs: response.data,
+        initialClimbs: response.data,
+        initialSelectedGrades: [] // Set initial selected grades to empty
       },
     };
   } catch (error) {
     console.error('Error fetching sport climbs:', error);
     return {
       props: {
-        climbs: [],
+        initialClimbs: [],
+        initialSelectedGrades: [] // Set initial selected grades to empty
       },
     };
   }
 }
-
-const styles = {
-  container: {
-    display: 'flex',
-    flexDirection: 'column',
-    minHeight: '100vh',
-  },
-  content: {
-    flex: 1,
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    padding: '20px',
-    maxWidth: '75%',
-    margin: '0 auto',
-  },
-  title: {
-    fontSize: '3rem',
-    fontWeight: 'bold',
-    marginBottom: '20px',
-    textAlign: 'center',
-  },
-};
 
 export default SportMap;

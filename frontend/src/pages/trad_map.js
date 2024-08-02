@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import GradeFilter from '../components/grade_filter';
-import styles from '../styles/climbs.module.css';
+import climbsStyles from '../styles/climbs.module.css';
 
-const TradIndex = ({ initialClimbs }) => {
+const LeafletMap = dynamic(() => import('../components/multi_pins_map'), { ssr: false });
+
+const TradMap = ({ initialClimbs, initialSelectedGrades }) => {
   const [climbs, setClimbs] = useState(initialClimbs);
+  const [selectedGrades, setSelectedGrades] = useState(initialSelectedGrades);
 
   const applyFilters = async (selectedGrades) => {
     try {
@@ -16,51 +19,31 @@ const TradIndex = ({ initialClimbs }) => {
         }
       });
       setClimbs(response.data);
+      setSelectedGrades(selectedGrades); // Update selected grades
     } catch (error) {
       console.error('Error fetching filtered climbs:', error);
     }
   };
 
+  const pins = climbs?.map(climb => ({
+    position: [climb.latitude, climb.longitude],
+    name: climb.name,
+    grade: climb.grade,
+    id: climb.id,
+  })) || [];
+
   return (
-    <div className={styles.container}>
-      <div className={styles.content}>
-        <h1 className={styles.title}>Trad Index</h1>
+    <div className={climbsStyles.container}>
+      <div className={climbsStyles.content}>
+        <h1 className={climbsStyles.title}>Trad Map</h1>
         <GradeFilter
-          grades={[
-            'V0-', 'V0', 'V0+', 'V1', 'V2', 'V3', 'V4', 'V5', 'V6', 'V7', 'V8', 'V9', 'V10', 'V11', 'V12', 'V13', 'V14', 'V15', 'V16', 'V17'
-          ]}
           onApply={applyFilters}
+          initialSelectedGrades={selectedGrades} // Pass the selected grades to the filter component
+          grades={[
+            '4', '5a', '5b', '5c', '6a', '6a+', '6b', '6b+', '6c', '6c+', '7a', '7a+', '7b', '7b+', '7c', '7c+', '8a', '8a+', '8b', '8b+', '8c', '8c+', '9a', '9a+', '9b', '9b+', '9c'
+          ]}
         />
-        <div className={styles.tableContainer}>
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th className={styles.wideColumn}>Name</th>
-                <th className={styles.narrowColumn}>Grade</th>
-                <th className={styles.wideColumn}>Area</th>
-                <th className={styles.wideColumn}>First Ascensionist</th>
-                <th className={styles.narrowColumn}>First Ascent Year</th>
-              </tr>
-            </thead>
-            <tbody>
-              {climbs.map(climb => (
-                <tr key={climb.id}>
-                  <td className={styles.wideColumn}>
-                    <Link href={`/node/${climb.id}`} legacyBehavior>
-                      <a className={styles.link}>{climb.name}</a>
-                    </Link>
-                  </td>
-                  <td className={styles.narrowColumn}>{climb.grade || 'N/A'}</td>
-                  <td className={styles.wideColumn}>{climb.area || 'N/A'}</td>
-                  <td className={styles.wideColumn}>{climb.first_ascensionist || 'N/A'}</td>
-                  <td className={styles.narrowColumn}>
-                    {climb.first_ascent_date ? new Date(climb.first_ascent_date).getFullYear() : 'N/A'}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <LeafletMap pins={pins} />
       </div>
     </div>
   );
@@ -76,16 +59,18 @@ export async function getServerSideProps() {
     return {
       props: {
         initialClimbs: response.data,
+        initialSelectedGrades: [] // Set initial selected grades to empty
       },
     };
   } catch (error) {
-    console.error('Error fetching climbs:', error);
+    console.error('Error fetching trad climbs:', error);
     return {
       props: {
         initialClimbs: [],
+        initialSelectedGrades: [] // Set initial selected grades to empty
       },
     };
   }
 }
 
-export default TradIndex;
+export default TradMap;
