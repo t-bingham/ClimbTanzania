@@ -31,34 +31,36 @@ const BoulderIndex = ({ initialClimbs }) => {
           ]}
           onApply={applyFilters}
         />
-        <table className={styles.table}>
-          <thead>
-            <tr>
-              <th className={styles.wideColumn}>Name</th>
-              <th className={styles.narrowColumn}>Grade</th>
-              <th className={styles.wideColumn}>Area</th>
-              <th className={styles.wideColumn}>First Ascensionist</th>
-              <th className={styles.narrowColumn}>First Ascent Year</th>
-            </tr>
-          </thead>
-          <tbody>
-            {climbs.map(climb => (
-              <tr key={climb.id}>
-                <td className={styles.wideColumn}>
-                  <Link href={`/node/${climb.id}`} legacyBehavior>
-                    <a className={styles.link}>{climb.name}</a>
-                  </Link>
-                </td>
-                <td className={styles.narrowColumn}>{climb.grade || 'N/A'}</td>
-                <td className={styles.wideColumn}>{climb.area || 'N/A'}</td>
-                <td className={styles.wideColumn}>{climb.first_ascensionist || 'N/A'}</td>
-                <td className={styles.narrowColumn}>
-                  {climb.first_ascent_date ? new Date(climb.first_ascent_date).getFullYear() : 'N/A'}
-                </td>
+        <div className={styles.tableContainer}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th className={styles.wideColumn}>Name</th>
+                <th className={styles.narrowColumn}>Grade</th>
+                <th className={styles.wideColumn}>Area</th>
+                <th className={styles.wideColumn}>First Ascensionist</th>
+                <th className={styles.narrowColumn}>First Ascent Year</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {climbs.map(climb => (
+                <tr key={climb.id}>
+                  <td className={styles.wideColumn}>
+                    <Link href={`/node/${climb.id}`} legacyBehavior>
+                      <a className={styles.link}>{climb.name}</a>
+                    </Link>
+                  </td>
+                  <td className={styles.narrowColumn}>{climb.grade || 'N/A'}</td>
+                  <td className={styles.wideColumn}>{climb.area || 'N/A'}</td>
+                  <td className={styles.wideColumn}>{climb.first_ascensionist || 'N/A'}</td>
+                  <td className={styles.narrowColumn}>
+                    {climb.first_ascent_date ? new Date(climb.first_ascent_date).getFullYear() : 'N/A'}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
@@ -67,7 +69,9 @@ const BoulderIndex = ({ initialClimbs }) => {
 export async function getServerSideProps() {
   try {
     const response = await axios.get('http://localhost:8000/climbs/', {
-      params: { type: 'Boulder' }
+      params: {
+        type: 'Boulder'
+      }
     });
     return {
       props: {

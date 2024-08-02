@@ -1,50 +1,61 @@
 .container {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-    align-items: center;
-  }
-  
-  .content {
-    flex: 1;
-    padding: 20px;
-    width: 75%;
-  }
-  
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  align-items: center;
+}
+
+.content {
+  flex: 1;
+  padding: 20px;
+  width: 75vw; /* Take up 75% of the view window width */
+}
+
+.title {
+  text-align: center;
+  font-weight: bold;
+  font-size: 36px; /* Larger font size */
+  padding-bottom: 20px;
+}
+
+.tableContainer {
+  width: 100%;
+  overflow-x: auto; /* Make the table horizontally scrollable */
+  -webkit-overflow-scrolling: touch; /* Enable smooth scrolling on iOS */
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th, .table td {
+  border-bottom: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+  min-width: 150px; /* Ensure each cell has a minimum width for readability */
+}
+
+.table th {
+  background-color: #f4f4f4;
+  font-weight: bold;
+}
+
+.wideColumn {
+  width: 30%;
+}
+
+.narrowColumn {
+  width: 10%;
+}
+
+.link {
+  color: #0070f3;
+  text-decoration: none;
+}
+
+@media (max-width: 600px) {
   .title {
-    text-align: center;
-    font-weight: bold;
-    font-size: 36px; /* Larger font size */
-    padding-bottom: 20px;
+    font-size: 24px; /* Smaller font size for mobile devices */
   }
-  
-  .table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 0 auto; /* Center the table */
-  }
-  
-  .table th, .table td {
-    border-bottom: 1px solid #ddd;
-    padding: 8px;
-    text-align: left;
-  }
-  
-  .table th {
-    background-color: #f4f4f4;
-    font-weight: bold;
-  }
-  
-  .wideColumn {
-    width: 30%;
-  }
-  
-  .narrowColumn {
-    width: 10%;
-  }
-  
-  .link {
-    color: #0070f3;
-    text-decoration: none;
-  }
-  
+}

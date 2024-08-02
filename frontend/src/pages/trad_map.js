@@ -1,66 +1,91 @@
-import React from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
-import dynamic from 'next/dynamic';
+import Link from 'next/link';
+import GradeFilter from '../components/grade_filter';
+import styles from '../styles/climbs.module.css';
 
-const LeafletMap = dynamic(() => import('../components/multi_pins_map'), { ssr: false });
+const TradIndex = ({ initialClimbs }) => {
+  const [climbs, setClimbs] = useState(initialClimbs);
 
-const TradMap = ({ climbs }) => {
-  const pins = climbs.map(climb => ({
-    position: [climb.latitude, climb.longitude],
-    name: climb.name,
-    grade: climb.grade,
-    id: climb.id,
-  }));
+  const applyFilters = async (selectedGrades) => {
+    try {
+      const response = await axios.get('http://localhost:8000/climbs/', {
+        params: {
+          type: 'Trad',
+          grades: selectedGrades.join(',')
+        }
+      });
+      setClimbs(response.data);
+    } catch (error) {
+      console.error('Error fetching filtered climbs:', error);
+    }
+  };
 
   return (
-    <div style={styles.container}>
-      <main style={styles.content}>
-        <h1 style={styles.title}>Trad Map</h1>
-        <LeafletMap pins={pins} />
-      </main>
+    <div className={styles.container}>
+      <div className={styles.content}>
+        <h1 className={styles.title}>Trad Index</h1>
+        <GradeFilter
+          grades={[
+            'V0-', 'V0', 'V0+', 'V1', 'V2', 'V3', 'V4', 'V5', 'V6', 'V7', 'V8', 'V9', 'V10', 'V11', 'V12', 'V13', 'V14', 'V15', 'V16', 'V17'
+          ]}
+          onApply={applyFilters}
+        />
+        <div className={styles.tableContainer}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th className={styles.wideColumn}>Name</th>
+                <th className={styles.narrowColumn}>Grade</th>
+                <th className={styles.wideColumn}>Area</th>
+                <th className={styles.wideColumn}>First Ascensionist</th>
+                <th className={styles.narrowColumn}>First Ascent Year</th>
+              </tr>
+            </thead>
+            <tbody>
+              {climbs.map(climb => (
+                <tr key={climb.id}>
+                  <td className={styles.wideColumn}>
+                    <Link href={`/node/${climb.id}`} legacyBehavior>
+                      <a className={styles.link}>{climb.name}</a>
+                    </Link>
+                  </td>
+                  <td className={styles.narrowColumn}>{climb.grade || 'N/A'}</td>
+                  <td className={styles.wideColumn}>{climb.area || 'N/A'}</td>
+                  <td className={styles.wideColumn}>{climb.first_ascensionist || 'N/A'}</td>
+                  <td className={styles.narrowColumn}>
+                    {climb.first_ascent_date ? new Date(climb.first_ascent_date).getFullYear() : 'N/A'}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   );
 };
 
 export async function getServerSideProps() {
   try {
-    const response = await axios.get('http://localhost:8000/climbs?type=Trad');
+    const response = await axios.get('http://localhost:8000/climbs/', {
+      params: {
+        type: 'Trad'
+      }
+    });
     return {
       props: {
-        climbs: response.data,
+        initialClimbs: response.data,
       },
     };
   } catch (error) {
-    console.error('Error fetching trad climbs:', error);
+    console.error('Error fetching climbs:', error);
     return {
       props: {
-        climbs: [],
+        initialClimbs: [],
       },
     };
   }
 }
 
-const styles = {
-  container: {
-    display: 'flex',
-    flexDirection: 'column',
-    minHeight: '100vh',
-  },
-  content: {
-    flex: 1,
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    padding: '20px',
-    maxWidth: '75%',
-    margin: '0 auto',
-  },
-  title: {
-    fontSize: '3rem',
-    fontWeight: 'bold',
-    marginBottom: '20px',
-    textAlign: 'center',
-  },
-};
-
-export default TradMap;
+export default TradIndex;
