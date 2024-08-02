@@ -34,7 +34,8 @@ const Climbs = ({ initialClimbs }) => {
         <table className={styles.table}>
           <thead>
             <tr>
-              <th className={styles.wideColumn}>Name</th>
+            <th className={styles.wideColumn}>Name</th>
+              <th className={styles.wideColumn}>Type</th>
               <th className={styles.narrowColumn}>Grade</th>
               <th className={styles.wideColumn}>Area</th>
               <th className={styles.wideColumn}>First Ascensionist</th>
@@ -49,6 +50,7 @@ const Climbs = ({ initialClimbs }) => {
                     <a className={styles.link}>{climb.name}</a>
                   </Link>
                 </td>
+                <td className={styles.wideColumn}>{climb.type || 'N/A'}</td>
                 <td className={styles.narrowColumn}>{climb.grade || 'N/A'}</td>
                 <td className={styles.wideColumn}>{climb.area || 'N/A'}</td>
                 <td className={styles.wideColumn}>{climb.first_ascensionist || 'N/A'}</td>

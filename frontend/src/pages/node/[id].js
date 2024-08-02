@@ -73,7 +73,7 @@ const styles = {
     alignItems: 'center',
     padding: '20px',
     paddingBottom: '60px', // Ensure there's space for the footer
-    maxWidth: '75%', // Ensure content doesn't exceed 75% of the screen width
+    maxWidth: '75vw', // Ensure content doesn't exceed 75% of the screen width
     margin: '0 auto',
   },
   title: {
