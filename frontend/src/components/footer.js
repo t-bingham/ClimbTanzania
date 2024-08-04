@@ -4,9 +4,6 @@ const Footer = () => {
   return (
     <footer style={styles.footer}>
       <nav style={styles.nav}>
-        <Link href="/add_climb" legacyBehavior>
-          <a style={styles.navLink}>Add a Climb</a>
-        </Link>
         <Link href="/contact_us" legacyBehavior>
           <a style={styles.navLink}>Contact Us</a>
         </Link>

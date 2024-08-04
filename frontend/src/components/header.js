@@ -15,6 +15,10 @@ const Header = () => {
     { href: '/trad_map', label: 'Trad Map' },
   ];
 
+  const addOptions = [
+    { href: '/add_climb', label: 'Add a Climb' },
+  ];
+
   return (
     <header style={styles.header}>
       <div style={styles.logoContainer}>
@@ -24,8 +28,10 @@ const Header = () => {
         <nav style={styles.nav}>
           <DropdownMenu label="Indexes" options={indexOptions} />
           <DropdownMenu label="Maps" options={mapOptions} />
+          <DropdownMenu label="Add" options={addOptions} />
         </nav>
       </div>
+      <button style={styles.logoutButton}>Logout</button>
     </header>
   );
 };
@@ -42,6 +48,7 @@ const styles = {
     zIndex: 100000,
     display: 'flex',
     alignItems: 'center',
+    justifyContent: 'space-between', // Ensures space between the logo and logout button
   },
   logoContainer: {
     display: 'flex',
@@ -56,6 +63,16 @@ const styles = {
     display: 'flex',
     justifyContent: 'flex-start',
     paddingLeft: '30px', // Add padding to the left of the dropdown menu
+  },
+  logoutButton: {
+    backgroundColor: 'black',
+    color: 'white',
+    padding: '10px 20px',
+    fontSize: '16px',
+    border: 'none',
+    cursor: 'pointer',
+    borderRadius: '5px', // Rounded edges
+    marginRight: '15px',
   },
 };
 

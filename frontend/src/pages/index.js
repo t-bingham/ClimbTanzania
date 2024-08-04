@@ -30,12 +30,6 @@ export default function Home() {
         <div style={styles.content}>
           <h1 style={styles.title}>Welcome to ClimbTanzania!</h1>
           <p style={styles.textBlock}>This is the homepage of ClimbTanzania.</p>
-          <Link href="/add_climb" legacyBehavior>
-            <a style={styles.link}>Add a Climb</a>
-          </Link>
-          <button onClick={handleViewClimbs} style={styles.link}>
-            View Climbs
-          </button>
         </div>
       </main>
     </div>
