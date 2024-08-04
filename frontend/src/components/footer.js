@@ -29,6 +29,7 @@ const styles = {
     borderTop: '1px solid #ddd',
     textAlign: 'center',
     marginTop: 'auto', // Ensures the footer is pushed to the bottom
+    zIndex: 100000,
   },
   nav: {
     display: 'flex',

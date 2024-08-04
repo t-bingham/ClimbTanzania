@@ -4,7 +4,7 @@ import path from 'path';
 const Info = ({ sections }) => {
   return (
     <div>
-      <div style={{ display: 'flex', paddingTop: '80px', maxWidth: '1200px', margin: '0 auto' }}>
+      <div style={styles.container}>
         <nav style={styles.sidebar}>
           {Object.entries(sections).map(([key, section], index) => (
             <a key={index} href={`#${key}`} style={styles.navLink}>
@@ -51,15 +51,23 @@ export const getStaticProps = async () => {
 };
 
 const styles = {
+  container: {
+    display: 'flex',
+    paddingTop: '80px',
+    maxWidth: '1200px',
+    margin: '0 auto',
+  },
   sidebar: {
     width: '25%',
     padding: '20px',
     position: 'fixed',
     top: '80px',
     left: '0',
-    height: '100%',
+    bottom: '0', // Make sure the sidebar stretches to the bottom of the viewport
+    height: 'calc(100% - 80px)', // Adjust height to account for the fixed header
     backgroundColor: '#f8f8f8',
     borderRight: '1px solid #ddd',
+    overflowY: 'auto', // Enable vertical scrolling
   },
   content: {
     width: '75%',
@@ -68,7 +76,7 @@ const styles = {
   },
   navLink: {
     display: 'block',
-    marginBottom: '10px',
+    marginBottom: '30px',
     textDecoration: 'none',
     color: '#000',
   },
@@ -83,6 +91,21 @@ const styles = {
     marginBottom: '20px',
     lineHeight: '1.6',
     fontSize: '18px',
+  },
+  '@media (max-width: 600px)': {
+    sidebar: {
+      width: '100%',
+      position: 'relative',
+      height: 'auto',
+      borderRight: 'none',
+      borderBottom: '1px solid #ddd',
+      paddingBottom: '10px',
+    },
+    content: {
+      width: '100%',
+      marginLeft: '0',
+      padding: '10px',
+    },
   },
 };
 
