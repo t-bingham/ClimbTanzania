@@ -1,0 +1,66 @@
+/* To solve Next.js issues source from https://github.com/Leaflet/Leaflet.markercluster/blob/master/dist/MarkerCluster.Default.css */
+.marker-cluster-small {
+    background-color: rgba(105, 105, 105, 0.6); /* Dark Grey */
+    border: 2px solid white;
+}
+.marker-cluster-small div {
+    background-color: rgba(105, 105, 105, 0.6);
+}
+
+.marker-cluster-medium {
+    background-color: rgba(70, 70, 70, 0.6); /* Darker Grey */
+    border: 2px solid white;
+}
+.marker-cluster-medium div {
+    background-color: rgba(70, 70, 70, 0.6);
+}
+
+.marker-cluster-large {
+    background-color: rgba(35, 35, 35, 0.6); /* Almost Black */
+    border: 2px solid white;
+}
+.marker-cluster-large div {
+    background-color: rgba(35, 35, 35, 0.6);
+}
+
+.marker-cluster {
+    background-clip: padding-box;
+    border-radius: 20px;
+}
+.marker-cluster div {
+    width: 30px;
+    height: 30px;
+    margin-left: 5px;
+    margin-top: 5px;
+    text-align: center;
+    border-radius: 15px;
+    font: 12px "Helvetica Neue", Arial, Helvetica, sans-serif;
+}
+.marker-cluster span {
+    line-height: 30px;
+}
+
+/* IE 6-8 fallback colors */
+.leaflet-oldie .marker-cluster-small {
+    background-color: rgb(105, 105, 105); /* Dark Grey */
+    border: 2px solid white;
+}
+.leaflet-oldie .marker-cluster-small div {
+    background-color: rgb(105, 105, 105);
+}
+
+.leaflet-oldie .marker-cluster-medium {
+    background-color: rgb(70, 70, 70); /* Darker Grey */
+    border: 2px solid white;
+}
+.leaflet-oldie .marker-cluster-medium div {
+    background-color: rgb(70, 70, 70);
+}
+
+.leaflet-oldie .marker-cluster-large {
+    background-color: rgb(35, 35, 35); /* Almost Black */
+    border: 2px solid white;
+}
+.leaflet-oldie .marker-cluster-large div {
+    background-color: rgb(35, 35, 35);
+}

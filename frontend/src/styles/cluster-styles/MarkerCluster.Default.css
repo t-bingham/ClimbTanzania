@@ -1,0 +1,61 @@
+/* To solve Next.js issues source from https://github.com/Leaflet/Leaflet.markercluster/blob/master/dist/MarkerCluster.Default.css */
+.marker-cluster-small {
+    background-color: rgba(64, 64, 64, 0.6); /* Darker Grey */
+}
+.marker-cluster-small div {
+    background-color: rgba(32, 32, 32, 0.6); /* Even Darker Grey */
+}
+
+.marker-cluster-medium {
+    background-color: rgba(48, 48, 48, 0.6); /* Very Dark Grey */
+}
+.marker-cluster-medium div {
+    background-color: rgba(24, 24, 24, 0.6); /* Almost Black */
+}
+
+.marker-cluster-large {
+    background-color: rgba(32, 32, 32, 0.6); /* Even Darker Grey */
+}
+.marker-cluster-large div {
+    background-color: rgba(16, 16, 16, 0.6); /* Black */
+}
+
+.marker-cluster {
+    background-clip: padding-box;
+    border-radius: 20px;
+	color: rgb(220, 220, 220);
+}
+.marker-cluster div {
+    width: 30px;
+    height: 30px;
+    margin-left: 5px;
+    margin-top: 5px;
+    text-align: center;
+    border-radius: 15px;
+    font: 12px "Helvetica Neue", Arial, Helvetica, sans-serif;
+}
+.marker-cluster span {
+    line-height: 30px;
+}
+
+/* IE 6-8 fallback colors */
+.leaflet-oldie .marker-cluster-small {
+    background-color: rgb(64, 64, 64); /* Darker Grey */
+}
+.leaflet-oldie .marker-cluster-small div {
+    background-color: rgb(32, 32, 32); /* Even Darker Grey */
+}
+
+.leaflet-oldie .marker-cluster-medium {
+    background-color: rgb(48, 48, 48); /* Very Dark Grey */
+}
+.leaflet-oldie .marker-cluster-medium div {
+    background-color: rgb(24, 24, 24); /* Almost Black */
+}
+
+.leaflet-oldie .marker-cluster-large {
+    background-color: rgb(32, 32, 32); /* Even Darker Grey */
+}
+.leaflet-oldie .marker-cluster-large div {
+    background-color: rgb(16, 16, 16); /* Black */
+}
