@@ -31,7 +31,10 @@ const Header = () => {
           <DropdownMenu label="Add" options={addOptions} />
         </nav>
       </div>
-      <button style={styles.logoutButton}>Logout</button>
+      <div style={styles.buttonContainer}>
+        <button style={styles.profileButton}>Profile</button>
+        <button style={styles.logoutButton}>Logout</button>
+      </div>
     </header>
   );
 };
@@ -64,6 +67,11 @@ const styles = {
     justifyContent: 'flex-start',
     paddingLeft: '30px', // Add padding to the left of the dropdown menu
   },
+  buttonContainer: {
+    display: 'flex',
+    alignItems: 'center',
+    paddingRight: '15px',
+  },
   logoutButton: {
     backgroundColor: 'black',
     color: 'white',
@@ -72,7 +80,16 @@ const styles = {
     border: 'none',
     cursor: 'pointer',
     borderRadius: '5px', // Rounded edges
-    marginRight: '15px',
+    marginLeft: '10px',
+  },
+  profileButton: {
+    backgroundColor: 'black',
+    color: 'white',
+    padding: '10px 20px',
+    fontSize: '16px',
+    border: 'none',
+    cursor: 'pointer',
+    borderRadius: '5px', // Rounded edges
   },
 };
 
