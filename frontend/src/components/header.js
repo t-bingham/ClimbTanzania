@@ -17,6 +17,7 @@ const Header = () => {
 
   const addOptions = [
     { href: '/add_climb', label: 'Add a Climb' },
+    { href: '/add_area', label: 'Add an Area' },
   ];
 
   return (

@@ -1,15 +1,26 @@
-from fastapi import FastAPI, Depends, HTTPException, status
+import os
+from dotenv import load_dotenv
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, Session
+from fastapi import FastAPI, Depends, HTTPException, status, UploadFile, File
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware
 from passlib.context import CryptContext
-from sqlalchemy.orm import Session
-from app.db.base import engine, SessionLocal
+from shapely.wkb import loads as load_wkb
+from shapely.wkt import loads as load_wkt
+from shapely.geometry import shape
+import xmltodict
 from app.models import add_climb as models
 from app.schemas import add_climb as schemas
 from typing import List
-import json
-from datetime import date
 import logging
+
+load_dotenv()  # Load environment variables from .env file
+
+DATABASE_URL = os.getenv('DATABASE_URL')
+
+engine = create_engine(DATABASE_URL)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 app = FastAPI()
 
@@ -95,6 +106,7 @@ def create_climb(climb: schemas.ClimbCreate, db: Session = Depends(get_db)):
         db.add(db_climb)
         db.commit()
         db.refresh(db_climb)
+        assign_climb_to_area(db_climb, db)
         logger.debug(f"Inserted climb data: {db_climb}")  # Debugging log
         return db_climb
     except Exception as e:
@@ -112,7 +124,6 @@ def read_climbs(skip: int = 0, limit: int = 10, grades: str = None, type: str = 
     climbs = query.offset(skip).limit(limit).all()
     return climbs
 
-
 @app.get("/climbs/{id}", response_model=schemas.Climb)
 def read_climb(id: int, db: Session = Depends(get_db)):
     try:
@@ -123,6 +134,71 @@ def read_climb(id: int, db: Session = Depends(get_db)):
     except Exception as e:
         logger.error(f"Error reading climb with id {id}: {e}")
         raise HTTPException(status_code=500, detail=f"Error reading climb with id {id}: {e}")
+
+# KML Upload and Area Assignment
+@app.post("/upload_kml")
+async def upload_kml(file: UploadFile = File(...), db: Session = Depends(get_db)):
+    if not file.filename.endswith('.kml'):
+        raise HTTPException(status_code=400, detail="Invalid file format. Please upload a KML file.")
+    
+    contents = await file.read()
+    kml_data = xmltodict.parse(contents)
+    coordinates_str = kml_data['kml']['Document']['Placemark']['Polygon']['outerBoundaryIs']['LinearRing']['coordinates']
+
+    # Process coordinates
+    coords = []
+    for point in coordinates_str.strip().split():
+        try:
+            lon, lat, _ = map(float, point.split(","))
+            coords.append([lon, lat])
+        except ValueError as e:
+            logger.error(f"Invalid coordinate value: {point} - {e}")
+
+    if not coords:
+        raise HTTPException(status_code=400, detail="No valid coordinates found in the KML file.")
+    
+    polygon = shape({"type": "Polygon", "coordinates": [coords]})
+
+    new_area = models.Area(name=file.filename, polygon=polygon.wkt)
+    db.add(new_area)
+    db.commit()
+
+    # Assign climbs to area
+    assign_climbs_to_area(new_area, db)
+
+    return {"filename": file.filename}
+
+def assign_climbs_to_area(area, db):
+    climbs = db.query(models.Climb).all()
+    for climb in climbs:
+        point = shape({"type": "Point", "coordinates": [climb.longitude, climb.latitude]})
+        polygon = load_wkb(bytes(area.polygon.data))  # Convert WKBElement to Shapely geometry
+        if point.within(polygon):
+            climb.area = area.name  # Set the area name
+            db.commit()
+
+
+def assign_climb_to_area(climb, db):
+    areas = db.query(models.Area).all()
+    for area in areas:
+        polygon = shape(area.polygon)
+        point = shape({"type": "Point", "coordinates": [climb.longitude, climb.latitude]})
+        if point.within(polygon):
+            climb.area = area.name
+            db.commit()
+            break
+
+    # Optionally, assign to "Uncontained Climbs" if no other area matched
+    if not climb.area:
+        climb.area = "Uncontained Climbs"
+        db.commit()
+
+
+    # Assign to "Uncontained Climbs" if no other area matched
+    if not climb.area:
+        climb.area = "Uncontained Climbs"
+        db.commit()
+
 
 # Extend Climb model to handle dict conversion
 def to_dict(self):

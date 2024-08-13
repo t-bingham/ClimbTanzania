@@ -1,15 +1,15 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import List, Optional
 
 class ClimbBase(BaseModel):
-    latitude: float
-    longitude: float
     name: str
     type: str
-    grade: Optional[str] = None
-    quality: Optional[int] = None
-    first_ascensionist: Optional[str] = None
-    first_ascent_date: Optional[str] = None
+    grade: str
+    quality: int
+    first_ascensionist: str
+    first_ascent_date: str
+    latitude: float
+    longitude: float
     description: Optional[str] = None
     tags: Optional[str] = None
 
@@ -32,6 +32,7 @@ class AreaCreate(AreaBase):
 
 class Area(AreaBase):
     id: int
+    climbs: List[Climb] = []
 
     class Config:
         orm_mode = True
