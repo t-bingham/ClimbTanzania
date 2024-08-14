@@ -13,20 +13,20 @@ const ClimbForm = ({ pinCoordinates }) => {
     quality: '',
     first_ascensionist: '',
     first_ascent_date: new Date().toISOString().slice(0, 10),
-    area: '',
     description: '',
     tags: '',
   });
 
   useEffect(() => {
     if (pinCoordinates) {
-      setFormData({
-        ...formData,
-        latitude: pinCoordinates.lat.toFixed(8),
-        longitude: pinCoordinates.lng.toFixed(8)
-      });
+        setFormData({
+            ...formData,
+            latitude: pinCoordinates.lat.toFixed(8),
+            longitude: pinCoordinates.lng.toFixed(8),
+            first_ascent_date: formData.first_ascent_date // Should be in ISO format string
+        });
     }
-  }, [pinCoordinates]);
+}, [pinCoordinates]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -43,6 +43,7 @@ const ClimbForm = ({ pinCoordinates }) => {
         }
       });
       console.log('Climb added successfully:', response.data);
+      // Redirect to the new climb's page
       router.push(`/node/${response.data.id}`);
     } catch (error) {
       console.error('Error adding climb:', error);
@@ -138,10 +139,6 @@ const ClimbForm = ({ pinCoordinates }) => {
       <div>
         <label style={requiredLabelStyle}><span style={requiredStarStyle}>*</span> First Ascent Date:</label>
         <input type="date" name="first_ascent_date" value={formData.first_ascent_date} onChange={handleChange} required style={inputStyle} />
-      </div>
-      <div>
-        <label style={labelStyle}>Area:</label>
-        <input type="text" name="area" value={formData.area} onChange={handleChange} style={inputStyle} />
       </div>
       <div>
         <label style={labelStyle}>Description:</label>

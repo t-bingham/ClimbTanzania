@@ -45,13 +45,16 @@ const BoulderMap = ({ initialClimbs, initialSelectedGrades, initialSelectedAreas
 
   const applyFilters = async (selectedGrades, selectedAreas) => {
     try {
+      const areasToQuery = selectedAreas.includes("Independent") ? [...selectedAreas] : selectedAreas;
+
       const response = await axios.get('http://localhost:8000/climbs/', {
         params: {
           type: 'Boulder',
           grades: selectedGrades.join(','),
-          areas: selectedAreas.join(','),
+          areas: areasToQuery.join(','),  // Pass selected areas to backend
         }
       });
+
       setClimbs(response.data);
       setSelectedGrades(selectedGrades);
       setSelectedAreas(selectedAreas);
@@ -82,7 +85,7 @@ const BoulderMap = ({ initialClimbs, initialSelectedGrades, initialSelectedAreas
           grades={[
             'V0-', 'V0', 'V1', 'V2', 'V3', 'V4', 'V5', 'V6', 'V7', 'V8', 'V9', 'V10', 'V11', 'V12', 'V13', 'V14', 'V15', 'V16', 'V17'
           ]}
-          areas={polygons}
+          areas={[...polygons, { name: 'Independent Climbs', id: 'independent', path: [], color: 'red' }]} // Add "Uncontained Climbs" as an option
         />
         <LeafletMap pins={pins} polygons={filteredPolygons} />
       </div>

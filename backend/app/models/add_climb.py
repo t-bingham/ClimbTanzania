@@ -15,7 +15,7 @@ class Climb(Base):
     grade = Column(String, index=True)
     quality = Column(Integer)
     first_ascensionist = Column(String)
-    first_ascent_date = Column(Date)
+    first_ascent_date = Column(String)
     area = Column(String, index=True)  # Use area as a string field
     description = Column(String)
     tags = Column(String)

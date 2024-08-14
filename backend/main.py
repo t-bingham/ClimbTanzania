@@ -1,4 +1,3 @@
-#ClimbTanzania/backend/main.py
 import os
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
@@ -16,9 +15,12 @@ from app.schemas import add_climb as schemas
 from app.db.base import engine, SessionLocal
 from typing import List
 import logging
-from shapely.wkb import loads as load_wkb
+from geoalchemy2.shape import to_shape
 from geoalchemy2.elements import WKBElement
 from sqlalchemy import func
+from geoalchemy2.shape import from_shape
+from shapely.geometry import Point
+from datetime import date
 
 load_dotenv()  # Load environment variables from .env file
 
@@ -108,10 +110,28 @@ def create_climb(climb: schemas.ClimbCreate, db: Session = Depends(get_db)):
     logger.debug(f"Received climb data: {climb}")  # Debugging log
     try:
         db_climb = models.Climb(**climb.dict())
+        
+        # Determine if the climb is within any existing area
+        assigned_area = db.query(models.Area).filter(
+            func.ST_Contains(
+                func.ST_SetSRID(models.Area.polygon, 4326),
+                func.ST_SetSRID(func.ST_MakePoint(db_climb.longitude, db_climb.latitude), 4326)
+            )
+        ).first()
+
+        if assigned_area:
+            db_climb.area = assigned_area.name
+        else:
+            db_climb.area = "Independent Climbs"
+
         db.add(db_climb)
         db.commit()
         db.refresh(db_climb)
-        assign_climb_to_area(db_climb, db)
+
+        # Convert first_ascent_date to string if it's a date object
+        if isinstance(db_climb.first_ascent_date, date):
+            db_climb.first_ascent_date = db_climb.first_ascent_date.isoformat()
+
         logger.debug(f"Inserted climb data: {db_climb}")  # Debugging log
         return db_climb
     except Exception as e:
@@ -119,19 +139,47 @@ def create_climb(climb: schemas.ClimbCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail=f"Error inserting climb: {e}")
 
 @app.get("/climbs/", response_model=List[schemas.Climb])
-def read_climbs(skip: int = 0, limit: int = 10, grades: str = None, type: str = None, db: Session = Depends(get_db)):
+def read_climbs(skip: int = 0, limit: int = 1000, grades: str = None, areas: str = None, type: str = None, db: Session = Depends(get_db)):
     query = db.query(models.Climb)
+
+    # Filter by type (e.g., Boulder)
+    if type:
+        query = query.filter(models.Climb.type == type)
+
+    # Filter by grades
     if grades:
         grade_list = grades.split(',')
         query = query.filter(models.Climb.grade.in_(grade_list))
-    if type:
-        query = query.filter(models.Climb.type == type)
+
+    # Filter by area name with SRID enforcement
+    if areas:
+        area_list = areas.split(',')
+
+        if "Independent Climbs" in area_list:
+            query = query.filter(
+                (models.Climb.area.in_(area_list)) | 
+                (models.Climb.area == None) | 
+                (models.Climb.area == '')
+            )
+        else:
+            query = query.filter(
+                db.query(models.Area)
+                .filter(
+                    models.Area.name.in_(area_list),
+                    func.ST_Contains(
+                        func.ST_Transform(func.ST_SetSRID(models.Area.polygon, 4326), 4326), 
+                        func.ST_SetSRID(func.ST_MakePoint(models.Climb.longitude, models.Climb.latitude), 4326)
+                    )
+                )
+                .exists()
+            )
+
     climbs = query.offset(skip).limit(limit).all()
 
     for climb in climbs:
         if climb.first_ascent_date:
             climb.first_ascent_date = climb.first_ascent_date.isoformat()
-            
+
     return climbs
 
 @app.get("/climbs/{id}", response_model=schemas.Climb)
@@ -140,10 +188,18 @@ def read_climb(id: int, db: Session = Depends(get_db)):
         climb = db.query(models.Climb).filter(models.Climb.id == id).first()
         if climb is None:
             raise HTTPException(status_code=404, detail="Climb not found")
+        
+        # Convert first_ascent_date to string if it's a date object
+        if isinstance(climb.first_ascent_date, date):
+            climb.first_ascent_date = climb.first_ascent_date.isoformat()
+
         return climb
     except Exception as e:
         logger.error(f"Error reading climb with id {id}: {e}")
         raise HTTPException(status_code=500, detail=f"Error reading climb with id {id}: {e}")
+
+
+
 
 # KML Upload and Area Assignment
 @app.post("/upload_kml")
@@ -169,7 +225,8 @@ async def upload_kml(file: UploadFile = File(...), db: Session = Depends(get_db)
     
     polygon = shape({"type": "Polygon", "coordinates": [coords]})
 
-    new_area = models.Area(name=file.filename, polygon=polygon.wkt)
+    # Ensure SRID is set to 4326
+    new_area = models.Area(name=file.filename, polygon=from_shape(polygon, srid=4326))
     db.add(new_area)
     db.commit()
 
@@ -197,37 +254,64 @@ def get_areas(db: Session = Depends(get_db)):
     print(f"Final polygons list: {polygons}")
     return polygons
 
+@app.post("/assign_existing_climbs/")
+def assign_existing_climbs(db: Session = Depends(get_db)):
+    climbs = db.query(models.Climb).all()
+    areas = db.query(models.Area).all()
+
+    for climb in climbs:
+        point = Point(climb.longitude, climb.latitude)
+        assigned = False
+
+        for area in areas:
+            try:
+                # Ensure polygon is correctly parsed from WKB
+                if isinstance(area.polygon, WKBElement):
+                    polygon = to_shape(area.polygon)  # Using geoalchemy2's to_shape for safer conversion
+                else:
+                    continue  # Skip if the polygon is not valid
+
+                if point.within(polygon):
+                    climb.area = area.name
+                    db.commit()
+                    assigned = True
+                    break
+            except Exception as e:
+                logger.error(f"Error processing area '{area.name}' for climb '{climb.name}': {e}")
+                continue
+
+        if not assigned:
+            climb.area = "Independent Climbs"
+            db.commit()
+
+    return {"status": "success", "message": "Climbs have been assigned to areas."}
+
+
 def assign_climbs_to_area(area, db):
     climbs = db.query(models.Climb).all()
     for climb in climbs:
-        point = shape({"type": "Point", "coordinates": [climb.longitude, climb.latitude]})
-        polygon = load_wkb(bytes(area.polygon.data))  # Convert WKBElement to Shapely geometry
-        if point.within(polygon):
-            climb.area = area.name  # Set the area name
-            db.commit()
+        point = Point(climb.longitude, climb.latitude)
+        polygon = shape(load_wkt(area.polygon))
 
+        if polygon.contains(point):
+            climb.area = area.name
+            db.commit()
 
 def assign_climb_to_area(climb, db):
     areas = db.query(models.Area).all()
     for area in areas:
-        polygon = shape(area.polygon)
-        point = shape({"type": "Point", "coordinates": [climb.longitude, climb.latitude]})
-        if point.within(polygon):
+        polygon = shape(load_wkt(area.polygon))
+        point = Point(climb.longitude, climb.latitude)
+
+        if polygon.contains(point):
             climb.area = area.name
             db.commit()
             break
 
-    # Optionally, assign to "Uncontained Climbs" if no other area matched
+    # Assign to "Independent Climbs" if no other area matched
     if not climb.area:
-        climb.area = "Uncontained Climbs"
+        climb.area = "Independent Climbs"
         db.commit()
-
-
-    # Assign to "Uncontained Climbs" if no other area matched
-    if not climb.area:
-        climb.area = "Uncontained Climbs"
-        db.commit()
-
 
 # Extend Climb model to handle dict conversion
 def to_dict(self):
