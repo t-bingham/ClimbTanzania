@@ -12,6 +12,7 @@ from shapely.geometry import shape
 import xmltodict
 from app.models import add_climb as models
 from app.schemas import add_climb as schemas
+from app.db.base import engine, SessionLocal
 from typing import List
 import logging
 
@@ -122,6 +123,11 @@ def read_climbs(skip: int = 0, limit: int = 10, grades: str = None, type: str = 
     if type:
         query = query.filter(models.Climb.type == type)
     climbs = query.offset(skip).limit(limit).all()
+
+    for climb in climbs:
+        if climb.first_ascent_date:
+            climb.first_ascent_date = climb.first_ascent_date.isoformat()
+            
     return climbs
 
 @app.get("/climbs/{id}", response_model=schemas.Climb)
