@@ -1,25 +1,29 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import dynamic from 'next/dynamic';
-import GradeFilter from '../components/grade_filter';
+import MapFilters from '../components/map_filters';
 import climbsStyles from '../styles/climbs.module.css';
 
 const LeafletMap = dynamic(() => import('../components/multi_pins_map'), { ssr: false });
 
-const SportMap = ({ initialClimbs, initialSelectedGrades }) => {
+const SportMap = ({ initialClimbs, initialSelectedGrades, initialSelectedAreas }) => {
   const [climbs, setClimbs] = useState(initialClimbs);
   const [selectedGrades, setSelectedGrades] = useState(initialSelectedGrades);
+  const [selectedAreas, setSelectedAreas] = useState(initialSelectedAreas);
 
-  const applyFilters = async (selectedGrades) => {
+  const applyFilters = async (selectedGrades, selectedAreas) => {
     try {
       const response = await axios.get('http://localhost:8000/climbs/', {
         params: {
           type: 'Sport',
-          grades: selectedGrades.join(',')
+          grades: selectedGrades.join(','),
+          areas: selectedAreas.join(','),
+          include_undefined_areas: selectedAreas.includes('Undefined Areas'),
         }
       });
       setClimbs(response.data);
-      setSelectedGrades(selectedGrades); // Update selected grades
+      setSelectedGrades(selectedGrades);
+      setSelectedAreas(selectedAreas);
     } catch (error) {
       console.error('Error fetching filtered climbs:', error);
     }
@@ -30,18 +34,21 @@ const SportMap = ({ initialClimbs, initialSelectedGrades }) => {
     name: climb.name,
     grade: climb.grade,
     id: climb.id,
+    area: climb.area || 'Undefined Area',
   })) || [];
 
   return (
     <div className={climbsStyles.container}>
       <div className={climbsStyles.content}>
         <h1 className={climbsStyles.title}>Sport Map</h1>
-        <GradeFilter
+        <MapFilters
           onApply={applyFilters}
-          initialSelectedGrades={selectedGrades} // Pass the selected grades to the filter component
+          initialSelectedGrades={selectedGrades}
+          initialSelectedAreas={selectedAreas}
           grades={[
-            '4', '5a', '5b', '5c', '6a', '6a+', '6b', '6b+', '6c', '6c+', '7a', '7a+', '7b', '7b+', '7c', '7c+', '8a', '8a+', '8b', '8b+', '8c', '8c+', '9a', '9a+', '9b', '9b+', '9c'
+            '5a', '5b', '5c', '6a', '6b', '6c', '7a', '7b', '7c', '8a', '8b', '8c', '9a'
           ]}
+          areas={['Area1', 'Area2', 'Area3', 'Undefined Areas']}  // Example areas and the special "Undefined Areas"
         />
         <LeafletMap pins={pins} />
       </div>
@@ -59,16 +66,18 @@ export async function getServerSideProps() {
     return {
       props: {
         initialClimbs: response.data,
-        initialSelectedGrades: [] // Set initial selected grades to empty
-      },
+        initialSelectedGrades: [],
+        initialSelectedAreas: [],
+      }
     };
   } catch (error) {
-    console.error('Error fetching sport climbs:', error);
+    console.error('Error fetching initial climbs:', error);
     return {
       props: {
         initialClimbs: [],
-        initialSelectedGrades: [] // Set initial selected grades to empty
-      },
+        initialSelectedGrades: [],
+        initialSelectedAreas: [],
+      }
     };
   }
 }

@@ -1,3 +1,4 @@
+#ClimbTanzania/backend/app/models/add_climb.py
 from sqlalchemy import Column, Integer, String, Float, Date
 from sqlalchemy.ext.declarative import declarative_base
 from geoalchemy2 import Geometry
@@ -20,6 +21,7 @@ class Climb(Base):
     tags = Column(String)
 
 class Area(Base):
+
     __tablename__ = 'areas'
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True)

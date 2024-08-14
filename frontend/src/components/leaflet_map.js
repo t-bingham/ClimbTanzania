@@ -1,10 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polygon, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import pinIcon from '../../public/pin1.png'; // Import the custom pin image
 
-const LeafletMap = ({ canDropPin, togglePinDropping, setPinCoordinates, initialPosition, isEditable = true }) => {
+const LeafletMap = ({ 
+  canDropPin, 
+  togglePinDropping, 
+  setPinCoordinates, 
+  initialPosition, 
+  isEditable = true, 
+  polygons = []  // Add polygons as a prop
+}) => {
   const [position, setPosition] = useState(initialPosition || null);
   const markerRef = useRef(null);
 
@@ -101,6 +108,10 @@ const LeafletMap = ({ canDropPin, togglePinDropping, setPinCoordinates, initialP
         url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
         attribution='&copy; <a href="https://www.esri.com/en-us/home">Esri</a> contributors'
       />
+      {/* Render Polygons */}
+      {polygons.map((polygon, index) => (
+        <Polygon key={index} positions={polygon.path} color="black" />
+      ))}
       <LocationMarker />
       {isEditable && <PinControl />}
     </MapContainer>

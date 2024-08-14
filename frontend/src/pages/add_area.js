@@ -1,3 +1,4 @@
+//ClimbTanzania/frontend/src/pages/add_area.js
 import React, { useState } from 'react';
 import axios from 'axios';
 

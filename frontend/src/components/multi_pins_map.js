@@ -1,7 +1,5 @@
-// src/components/multi_pins_map.js
-
 import React from 'react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polygon } from 'react-leaflet';
 import MarkerClusterGroup from '../custom-modules/react-leaflet-cluster/lib'; // Ensure this path is correct
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css'; // Import leaflet CSS here if not already imported globally
@@ -15,7 +13,8 @@ const customIcon = L.icon({
   popupAnchor: [0, -44], // Popup from the top-center
 });
 
-const LeafletMap = ({ pins = [], initialPosition }) => {
+const LeafletMap = ({ pins = [], polygons = [], initialPosition }) => {
+  console.log('Polygons passed to LeafletMap:', polygons);
   return (
     <MapContainer center={initialPosition || [-2.031246, 33.496643]} zoom={8} style={{ height: '500px', width: '75vw' }}>
       <TileLayer
@@ -34,6 +33,13 @@ const LeafletMap = ({ pins = [], initialPosition }) => {
           </Marker>
         ))}
       </MarkerClusterGroup>
+
+      {/* Render dynamic polygons */}
+      {polygons.map((polygon, idx) => (
+        <Polygon key={idx} positions={polygon.path} color={polygon.color}>
+          <Popup>{polygon.name}</Popup>
+        </Polygon>
+      ))}
     </MapContainer>
   );
 };

@@ -1,3 +1,4 @@
+#ClimbTanzania/backend/app/schemas/add_climb.py
 from pydantic import BaseModel
 from typing import Optional
 
@@ -25,7 +26,7 @@ class Climb(ClimbBase):
 
 class AreaBase(BaseModel):
     name: str
-    polygon: str
+    polygon: Optional[str] = None
 
 class AreaCreate(AreaBase):
     pass

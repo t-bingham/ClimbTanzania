@@ -1,3 +1,4 @@
+#ClimbTanzania/backend/main.py
 import os
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
@@ -15,6 +16,9 @@ from app.schemas import add_climb as schemas
 from app.db.base import engine, SessionLocal
 from typing import List
 import logging
+from shapely.wkb import loads as load_wkb
+from geoalchemy2.elements import WKBElement
+from sqlalchemy import func
 
 load_dotenv()  # Load environment variables from .env file
 
@@ -173,6 +177,25 @@ async def upload_kml(file: UploadFile = File(...), db: Session = Depends(get_db)
     assign_climbs_to_area(new_area, db)
 
     return {"filename": file.filename}
+
+@app.get("/areas/", response_model=List[schemas.Area])
+def get_areas(db: Session = Depends(get_db)):
+    areas = db.query(
+        models.Area.id,
+        models.Area.name,
+        func.ST_AsText(models.Area.polygon).label('polygon')
+    ).all()
+    
+    print(f"Queried areas with WKT: {areas}")
+
+    # Convert the queried data into the desired structure
+    polygons = [
+        {"id": area.id, "name": area.name, "polygon": area.polygon}
+        for area in areas
+    ]
+
+    print(f"Final polygons list: {polygons}")
+    return polygons
 
 def assign_climbs_to_area(area, db):
     climbs = db.query(models.Climb).all()
