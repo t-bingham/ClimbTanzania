@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import ClimbForm from '../components/climb_form';
+import withAuth from '../hoc/withAuth';
 
 const LeafletMap = dynamic(() => import('../components/leaflet_map'), { ssr: false });
 
@@ -59,4 +60,4 @@ const styles = {
   },
 };
 
-export default AddClimb;
+export default withAuth(AddClimb);

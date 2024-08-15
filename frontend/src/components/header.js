@@ -1,7 +1,18 @@
 import Link from 'next/link';
 import DropdownMenu from './dropdown_menu'; // Ensure this is the correct path to your dropdown_menu component
+import { useRouter } from 'next/router';
 
 const Header = () => {
+  const router = useRouter();
+
+  const handleLogout = () => {
+    // Clear the token from local storage
+    localStorage.removeItem('token');
+
+    // Redirect to the login page
+    router.push('/login');
+  };
+
   const indexOptions = [
     { href: '/climbs', label: 'Climbs Index' },
     { href: '/boulder_index', label: 'Boulder Index' },
@@ -34,7 +45,7 @@ const Header = () => {
       </div>
       <div style={styles.buttonContainer}>
         <button style={styles.profileButton}>Profile</button>
-        <button style={styles.logoutButton}>Logout</button>
+        <button style={styles.logoutButton} onClick={handleLogout}>Logout</button>
       </div>
     </header>
   );

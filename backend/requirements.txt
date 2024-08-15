@@ -10,3 +10,4 @@ bcrypt
 shapely
 xmltodict
 geoalchemy2
+python-jose

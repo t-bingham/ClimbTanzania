@@ -1,6 +1,7 @@
 //ClimbTanzania/frontend/src/pages/add_area.js
 import React, { useState } from 'react';
 import axios from 'axios';
+import withAuth from '../hoc/withAuth';
 
 const AddArea = () => {
   const [file, setFile] = useState(null);
@@ -105,4 +106,4 @@ const styles = {
   },
 };
 
-export default AddArea;
+export default withAuth(AddArea);

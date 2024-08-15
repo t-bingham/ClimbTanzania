@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic';
 import MapFilters from '../components/map_filters';
 import climbsStyles from '../styles/climbs.module.css';
 import * as wellknown from 'wellknown';
+import withAuth from '../hoc/withAuth';
 
 const LeafletMap = dynamic(() => import('../components/multi_pins_map'), { ssr: false });
 
@@ -119,4 +120,4 @@ export async function getServerSideProps() {
   }
 }
 
-export default BoulderMap;
+export default withAuth(BoulderMap);

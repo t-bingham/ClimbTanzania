@@ -1,17 +1,43 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Link from 'next/link';
-import GradeFilter from '../components/grade_filter';
+import MapFilters from '../components/map_filters';
 import styles from '../styles/climbs.module.css';
+import withAuth from '../hoc/withAuth';
+import * as wellknown from 'wellknown';
 
 const Climbs = ({ initialClimbs }) => {
   const [climbs, setClimbs] = useState(initialClimbs);
+  const [areas, setAreas] = useState([]);
 
-  const applyFilters = async (selectedGrades) => {
+  useEffect(() => {
+    const fetchAreas = async () => {
+      try {
+        const response = await axios.get('http://localhost:8000/areas/');
+        const parsedAreas = response.data
+          .filter(area => area.polygon)
+          .map(area => {
+            const parsed = wellknown.parse(area.polygon);
+            const invertedCoordinates = parsed.coordinates[0].map(coord => [coord[1], coord[0]]); // Invert lat/lng
+            return {
+              ...area,
+              path: invertedCoordinates, // Use inverted coordinates
+            };
+          });
+        setAreas(parsedAreas);
+      } catch (error) {
+        console.error('Error fetching areas:', error);
+      }
+    };
+    fetchAreas();
+  }, []);
+
+  const applyFilters = async (selectedGrades, selectedAreas) => {
     try {
       const response = await axios.get('http://localhost:8000/climbs/', {
         params: {
-          grades: selectedGrades.join(',')
+          grades: selectedGrades.join(','),
+          areas: selectedAreas.join(','),
         }
       });
       setClimbs(response.data);
@@ -24,11 +50,12 @@ const Climbs = ({ initialClimbs }) => {
     <div className={styles.container}>
       <div className={styles.content}>
         <h1 className={styles.title}>Climb Index</h1>
-        <GradeFilter
+        <MapFilters
           grades={[
             'V0-', 'V0', 'V0+', 'V1', 'V2', 'V3', 'V4', 'V5', 'V6', 'V7', 'V8', 'V9', 'V10', 'V11', 'V12', 'V13', 'V14', 'V15', 'V16', 'V17',
             '4', '5a', '5b', '5c', '6a', '6a+', '6b', '6b+', '6c', '6c+', '7a', '7a+', '7b', '7b+', '7c', '7c+', '8a', '8a+', '8b', '8b+', '8c', '8c+', '9a', '9a+', '9b', '9b+', '9c'
           ]}
+          areas={[...areas, { name: 'Independent Climbs', id: 'independent', path: [], color: 'red' }]}  // Pass areas
           onApply={applyFilters}
         />
         <div className={styles.tableContainer}>
@@ -86,4 +113,4 @@ export async function getServerSideProps() {
   }
 }
 
-export default Climbs;
+export default withAuth(Climbs);

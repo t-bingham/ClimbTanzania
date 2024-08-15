@@ -1,27 +1,35 @@
-import sys
 import os
 from logging.config import fileConfig
-from sqlalchemy import engine_from_config, pool
+from sqlalchemy import create_engine, pool
 from alembic import context
+from dotenv import load_dotenv
+from backend.app.models.add_climb import User  # Ensure all relevant models are imported
+from backend.app.db.base import Base  # Make sure Base is imported
 
+# Load environment variables from .env file
+load_dotenv()
+
+# Alembic Config object
 config = context.config
 
+# Interpret the config file for Python logging.
 fileConfig(config.config_file_name)
 
-# Ensure the backend directory is in the Python path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+# Get the database URL from the environment variable
+database_url = os.getenv('DATABASE_URL')
+print("DATABASE_URL:", database_url)
 
-# Correct import path based on project structure
-from backend.app.models.add_climb import Climb
-from backend.app.db.base import Base
+# Ensure that the database URL is correctly loaded
+if not database_url:
+    raise RuntimeError("DATABASE_URL is not set or loaded from .env file")
 
+# Set the target metadata
 target_metadata = Base.metadata
 
-def run_migrations_offline() -> None:
-    url = config.get_main_option("sqlalchemy.url")
-    print(f"Running migrations offline with URL: {url}")
+def run_migrations_offline():
+    """Run migrations in 'offline' mode."""
     context.configure(
-        url=url,
+        url=database_url,
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
@@ -30,17 +38,16 @@ def run_migrations_offline() -> None:
     with context.begin_transaction():
         context.run_migrations()
 
-def run_migrations_online() -> None:
-    connectable = engine_from_config(
-        config.get_section(config.config_ini_section),
-        prefix="sqlalchemy.",
-        poolclass=pool.NullPool,
-    )
+def run_migrations_online():
+    """Run migrations in 'online' mode."""
+    connectable = create_engine(database_url, poolclass=pool.NullPool)
 
-    print(f"Running migrations online with connectable: {connectable}")
     with connectable.connect() as connection:
         context.configure(
-            connection=connection, target_metadata=target_metadata
+            connection=connection,
+            target_metadata=target_metadata,
+            compare_type=True,  # This ensures Alembic detects changes in types
+            compare_server_default=True  # Ensures defaults are correctly compared
         )
 
         with context.begin_transaction():

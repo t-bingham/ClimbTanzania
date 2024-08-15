@@ -1,5 +1,5 @@
 #ClimbTanzania/backend/app/schemas/add_climb.py
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr, Field
 from typing import Optional
 
 class ClimbBase(BaseModel):
@@ -13,6 +13,7 @@ class ClimbBase(BaseModel):
     first_ascent_date: Optional[str] = None
     description: Optional[str] = None
     tags: Optional[str] = None
+    area: Optional[str] = None
 
 class ClimbCreate(ClimbBase):
     pass
@@ -32,6 +33,21 @@ class AreaCreate(AreaBase):
     pass
 
 class Area(AreaBase):
+    id: int
+
+    class Config:
+        orm_mode = True
+
+
+class UserBase(BaseModel):
+    username: str = Field(..., min_length=3)
+    email: EmailStr
+    password: str = Field(..., min_length=5)
+
+class UserCreate(UserBase):
+    pass
+
+class User(UserBase):
     id: int
 
     class Config:

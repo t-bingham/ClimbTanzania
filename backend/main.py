@@ -2,13 +2,11 @@ import os
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
-from fastapi import FastAPI, Depends, HTTPException, status, UploadFile, File
+from fastapi import FastAPI, Depends, HTTPException, status, UploadFile, File, Form
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware
 from passlib.context import CryptContext
-from shapely.wkb import loads as load_wkb
-from shapely.wkt import loads as load_wkt
-from shapely.geometry import shape
+from shapely.geometry import shape, Point
 import xmltodict
 from app.models import add_climb as models
 from app.schemas import add_climb as schemas
@@ -18,17 +16,19 @@ import logging
 from geoalchemy2.shape import to_shape
 from geoalchemy2.elements import WKBElement
 from sqlalchemy import func
-from geoalchemy2.shape import from_shape
-from shapely.geometry import Point
 from datetime import date
+from jose import JWTError, jwt
+from pydantic import EmailStr
 
-load_dotenv()  # Load environment variables from .env file
+# Load environment variables from .env file
+load_dotenv()
 
+# Database configuration
 DATABASE_URL = os.getenv('DATABASE_URL')
-
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
+# FastAPI app initialization
 app = FastAPI()
 
 # Setup logging
@@ -52,41 +52,45 @@ app.add_middleware(
 # Password hashing configuration
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# In-memory storage for simplicity
-users_db = {
-    "admin": {
-        "username": "admin",
-        "hashed_password": pwd_context.hash("admin"),
-    }
-}
-
+# OAuth2 configuration
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+# Dependency to get the database session
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
 
-def authenticate_user(username: str, password: str):
-    user = users_db.get(username)
+def get_user(db: Session, username: str):
+    return db.query(models.User).filter(models.User.username == username).first()
+
+def authenticate_user(db: Session, username: str, password: str):
+    user = get_user(db, username)
     if not user:
         return False
-    if not verify_password(password, user["hashed_password"]):
+    if not verify_password(password, user.hashed_password):
         return False
     return user
 
 @app.post("/token")
-async def login(form_data: OAuth2PasswordRequestForm = Depends()):
-    user = authenticate_user(form_data.username, form_data.password)
+async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    user = authenticate_user(db, form_data.username, form_data.password)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    return {"access_token": user["username"], "token_type": "bearer"}
+    return {"access_token": user.username, "token_type": "bearer"}
 
 @app.get("/users/me")
-async def read_users_me(token: str = Depends(oauth2_scheme)):
-    user = authenticate_user(token, token)
+async def read_users_me(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    user = get_user(db, token)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -98,12 +102,45 @@ async def read_users_me(token: str = Depends(oauth2_scheme)):
 # Initialize the database models
 models.Base.metadata.create_all(bind=engine)
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+@app.post("/register")
+async def register(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    email: EmailStr = Form(...),
+    db: Session = Depends(get_db)
+):
+    # Validate username length
+    if len(form_data.username) < 3:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Username must be at least 3 characters long",
+        )
+
+    # Validate password length
+    if len(form_data.password) < 5:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Password must be at least 5 characters long",
+        )
+
+    # Check if the username or email already exists
+    existing_user = db.query(models.User).filter(
+        (models.User.username == form_data.username) | (models.User.email == email)
+    ).first()
+    if existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Username or email already taken",
+        )
+
+    # Create the new user
+    hashed_password = pwd_context.hash(form_data.password)
+    new_user = models.User(username=form_data.username, email=email, hashed_password=hashed_password)
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+
+    return {"msg": "User created successfully"}
+
 
 @app.post("/climbs/", response_model=schemas.Climb)
 def create_climb(climb: schemas.ClimbCreate, db: Session = Depends(get_db)):
@@ -197,9 +234,6 @@ def read_climb(id: int, db: Session = Depends(get_db)):
     except Exception as e:
         logger.error(f"Error reading climb with id {id}: {e}")
         raise HTTPException(status_code=500, detail=f"Error reading climb with id {id}: {e}")
-
-
-
 
 # KML Upload and Area Assignment
 @app.post("/upload_kml")

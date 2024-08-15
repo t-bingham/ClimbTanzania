@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 
-export default function Login() {
+export default function Register() {
   const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const router = useRouter();
@@ -10,38 +11,37 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch('http://localhost:8000/token', {
+      const res = await fetch('http://localhost:8000/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
         body: new URLSearchParams({
           username,
+          email,
           password,
         }),
       });
       if (res.ok) {
-        const data = await res.json();
-        localStorage.setItem('token', data.access_token);
-        router.push('/');
+        router.push('/login');
       } else {
         const errorData = await res.json();
-        setError(errorData.detail || 'Invalid username or password');
+        setError(errorData.detail || 'Registration failed');
       }
     } catch (error) {
       setError('Failed to connect to the server');
     }
   };
 
-  const handleSignup = () => {
-    router.push('/register');
+  const handleLogin = () => {
+    router.push('/login');
   };
 
   return (
     <div style={styles.container}>
       <div style={styles.card}>
-        <h1 style={styles.title}>Welcome Back</h1>
-        <p style={styles.subtitle}>Log in to continue to ClimbTanzania</p>
+        <h1 style={styles.title}>Create Account</h1>
+        <p style={styles.subtitle}>Sign up to join ClimbTanzania</p>
         <form onSubmit={handleSubmit} style={styles.form}>
           <div style={styles.inputGroup}>
             <label htmlFor="username" style={styles.label}>Username</label>
@@ -50,6 +50,17 @@ export default function Login() {
               id="username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
+              style={styles.input}
+              required
+            />
+          </div>
+          <div style={styles.inputGroup}>
+            <label htmlFor="email" style={styles.label}>Email</label>
+            <input
+              type="email"
+              id="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               style={styles.input}
               required
             />
@@ -66,11 +77,11 @@ export default function Login() {
             />
           </div>
           {error && <p style={styles.error}>{error}</p>}
-          <button type="submit" style={styles.button}>Login</button>
+          <button type="submit" style={styles.button}>Register</button>
         </form>
         <div style={styles.signupContainer}>
-          <p style={styles.signupText}>Don't have an account?</p>
-          <button onClick={handleSignup} style={styles.signupButton}>Sign Up</button>
+          <p style={styles.signupText}>Already have an account?</p>
+          <button onClick={handleLogin} style={styles.signupButton}>Login</button>
         </div>
       </div>
     </div>

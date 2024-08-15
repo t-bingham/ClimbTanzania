@@ -1,28 +1,15 @@
-import React, { useEffect, useState } from 'react';
+// frontend/src/pages/index.js
+import React from 'react';
 import { useRouter } from 'next/router';
-import Link from 'next/link';
+import withAuth from '../hoc/withAuth';
 
-export default function Home() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+function Home() {
   const router = useRouter();
-
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      router.push('/login');
-    } else {
-      setIsAuthenticated(true);
-    }
-  }, [router]);
-
+  
   const handleViewClimbs = () => {
     console.log('Navigating to /climbs');
     router.push('/climbs');
   };
-
-  if (!isAuthenticated) {
-    return null; // or a loading spinner
-  }
 
   return (
     <div style={styles.container}>
@@ -35,6 +22,8 @@ export default function Home() {
     </div>
   );
 }
+
+export default withAuth(Home);
 
 const styles = {
   container: {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styles from '../styles/grade_filter.module.css';
 
 const MapFilters = ({ onApply, initialSelectedGrades = [], initialSelectedAreas = [], grades, areas = [] }) => {
@@ -6,10 +6,23 @@ const MapFilters = ({ onApply, initialSelectedGrades = [], initialSelectedAreas 
   const [selectedGrades, setSelectedGrades] = useState(initialSelectedGrades);
   const [selectedAreas, setSelectedAreas] = useState(initialSelectedAreas);
 
+  // Use refs to prevent unnecessary state updates
+  const initialGradesSet = useRef(false);
+  const initialAreasSet = useRef(false);
+
   useEffect(() => {
-    setSelectedGrades(initialSelectedGrades);
-    setSelectedAreas(initialSelectedAreas);
-  }, [initialSelectedGrades, initialSelectedAreas]);
+    if (!initialGradesSet.current) {
+      setSelectedGrades(initialSelectedGrades);
+      initialGradesSet.current = true;
+    }
+  }, [initialSelectedGrades]);
+
+  useEffect(() => {
+    if (!initialAreasSet.current) {
+      setSelectedAreas(initialSelectedAreas);
+      initialAreasSet.current = true;
+    }
+  }, [initialSelectedAreas]);
 
   const toggleFilter = () => {
     setFilterOpen(!filterOpen);
@@ -17,20 +30,16 @@ const MapFilters = ({ onApply, initialSelectedGrades = [], initialSelectedAreas 
 
   const handleGradeChange = (event) => {
     const { value, checked } = event.target;
-    if (checked) {
-      setSelectedGrades([...selectedGrades, value]);
-    } else {
-      setSelectedGrades(selectedGrades.filter(grade => grade !== value));
-    }
+    setSelectedGrades(prevSelectedGrades =>
+      checked ? [...prevSelectedGrades, value] : prevSelectedGrades.filter(grade => grade !== value)
+    );
   };
 
   const handleAreaChange = (event) => {
     const { value, checked } = event.target;
-    if (checked) {
-      setSelectedAreas([...selectedAreas, value]);
-    } else {
-      setSelectedAreas(selectedAreas.filter(area => area !== value));
-    }
+    setSelectedAreas(prevSelectedAreas =>
+      checked ? [...prevSelectedAreas, value] : prevSelectedAreas.filter(area => area !== value)
+    );
   };
 
   const applyFilters = () => {
