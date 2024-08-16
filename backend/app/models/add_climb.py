@@ -1,6 +1,7 @@
 # ClimbTanzania/backend/app/models/add_climb.py
-from sqlalchemy import Column, Integer, String, Float, Date
+from sqlalchemy import Column, Integer, String, Float, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship
 from geoalchemy2 import Geometry
 
 Base = declarative_base()
@@ -32,3 +33,12 @@ class User(Base):
     username = Column(String, unique=True, index=True)
     email = Column(String, unique=True, index=True)
     hashed_password = Column(String)
+    ticklist = relationship("Ticklist", back_populates="user")
+
+class Ticklist(Base):
+    __tablename__ = 'ticklist'
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey('users.id'))
+    climb_id = Column(Integer, ForeignKey('climbs.id'))
+    user = relationship("User", back_populates="ticklist")
+    climb = relationship("Climb")

@@ -19,6 +19,7 @@ from sqlalchemy import func
 from datetime import date, datetime, timedelta
 from jose import JWTError, jwt
 from pydantic import EmailStr
+from app.auth import get_current_user
 
 # Load environment variables from .env file
 load_dotenv()
@@ -58,7 +59,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 # JWT configuration
 SECRET_KEY = os.getenv("SECRET_KEY", "your_secret_key")
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30  # You can adjust the expiration time
+ACCESS_TOKEN_EXPIRE_MINUTES = 180
 
 # Dependency to get the database session
 def get_db():
@@ -338,6 +339,44 @@ def assign_existing_climbs(db: Session = Depends(get_db)):
             db.commit()
 
     return {"status": "success", "message": "Climbs have been assigned to areas."}
+
+
+@app.post("/ticklist/add")
+async def add_to_ticklist(request: schemas.ClimbIDRequest, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    try:
+        climb = db.query(models.Climb).filter(models.Climb.id == request.climb_id).first()
+        if not climb:
+            raise HTTPException(status_code=404, detail="Climb not found")
+        
+        # Check if the climb is already in the user's ticklist
+        existing_entry = db.query(models.Ticklist).filter(models.Ticklist.user_id == current_user.id, models.Ticklist.climb_id == climb.id).first()
+        if existing_entry:
+            raise HTTPException(status_code=400, detail="Climb already in ticklist")
+        
+        # Add the climb to the user's ticklist
+        new_entry = models.Ticklist(user_id=current_user.id, climb_id=climb.id)
+        db.add(new_entry)
+        db.commit()
+        
+        return {"msg": "Climb added to ticklist"}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.get("/ticklist/", response_model=List[schemas.Climb])
+def get_ticklist(current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
+    ticklist_climbs = (
+        db.query(models.Climb)
+        .join(models.Ticklist, models.Climb.id == models.Ticklist.climb_id)
+        .filter(models.Ticklist.user_id == current_user.id)
+        .all()
+    )
+
+    for climb in ticklist_climbs:
+        if isinstance(climb.first_ascent_date, date):
+            climb.first_ascent_date = climb.first_ascent_date.isoformat()
+
+    return ticklist_climbs
 
 
 def assign_climbs_to_area(area, db):

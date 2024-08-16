@@ -23,7 +23,7 @@ class Climb(ClimbBase):
     area_id: Optional[int] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class AreaBase(BaseModel):
     name: str
@@ -36,7 +36,7 @@ class Area(AreaBase):
     id: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class UserBase(BaseModel):
@@ -51,7 +51,10 @@ class User(UserBase):
     id: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class TokenData(BaseModel):
     username: str
+
+class ClimbIDRequest(BaseModel):
+    climb_id: int
