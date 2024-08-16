@@ -361,6 +361,28 @@ async def add_to_ticklist(request: schemas.ClimbIDRequest, db: Session = Depends
         return {"msg": "Climb added to ticklist"}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+    
+
+@app.post("/ticklist/remove")
+async def remove_from_ticklist(request: schemas.ClimbIDRequest, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    try:
+        climb = db.query(models.Climb).filter(models.Climb.id == request.climb_id).first()
+        if not climb:
+            raise HTTPException(status_code=404, detail="Climb not found")
+        
+        # Check if the climb is in the user's ticklist
+        existing_entry = db.query(models.Ticklist).filter(models.Ticklist.user_id == current_user.id, models.Ticklist.climb_id == climb.id).first()
+        if not existing_entry:
+            raise HTTPException(status_code=400, detail="Climb not in ticklist")
+        
+        # Remove the climb from the user's ticklist
+        db.delete(existing_entry)
+        db.commit()
+        
+        return {"msg": "Climb removed from ticklist"}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
 
 
 @app.get("/ticklist/", response_model=List[schemas.Climb])
@@ -371,6 +393,7 @@ def get_ticklist(current_user: models.User = Depends(get_current_user), db: Sess
         .filter(models.Ticklist.user_id == current_user.id)
         .all()
     )
+
 
     for climb in ticklist_climbs:
         if isinstance(climb.first_ascent_date, date):

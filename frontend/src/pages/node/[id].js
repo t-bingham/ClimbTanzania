@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/router';
 import dynamic from 'next/dynamic';
@@ -7,13 +7,10 @@ const LeafletMap = dynamic(() => import('../../components/leaflet_map'), { ssr: 
 
 const ClimbDetail = ({ climb }) => {
   const router = useRouter();
-
-  if (router.isFallback) {
-    return <div>Loading...</div>;
-  }
+  const [isOnTicklist, setIsOnTicklist] = useState(false); // State to track if climb is on ticklist
 
   const {
-    id, // Add id here to use in the addClimbToTicklist function
+    id,
     name,
     area,
     grade,
@@ -27,24 +24,49 @@ const ClimbDetail = ({ climb }) => {
 
   const stars = '★'.repeat(quality);
 
-  const addClimbToTicklist = async (climbId) => {
+  useEffect(() => {
+    // Check if the climb is on the ticklist when the component mounts
+    const checkIfOnTicklist = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await axios.get('http://localhost:8000/ticklist/', {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        const ticklist = response.data;
+        setIsOnTicklist(ticklist.some(item => item.id === climb.id));
+      } catch (error) {
+        console.error('Error checking ticklist:', error);
+      }
+    };
+
+    checkIfOnTicklist();
+  }, [climb.id]);
+
+  const toggleTicklist = async () => {
     try {
-        const token = localStorage.getItem('token'); // Retrieve the token from storage
-        const response = await axios.post(
-            'http://localhost:8000/ticklist/add',
-            { climb_id: climbId }, // Pass climb_id as a key-value pair
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`, // Include the token in the header
-                    'Content-Type': 'application/json', // Ensure JSON content type
-                }
-            }
-        );
-        console.log('Climb added to ticklist:', response.data);
+      const token = localStorage.getItem('token');
+      const url = `http://localhost:8000/ticklist/${isOnTicklist ? 'remove' : 'add'}`;
+      const response = await axios.post(
+        url,
+        { climb_id: climb.id },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+      setIsOnTicklist(!isOnTicklist); // Toggle the state after successful add/remove
+      console.log(`Climb ${isOnTicklist ? 'removed from' : 'added to'} ticklist:`, response.data);
     } catch (error) {
-        console.error('Error adding climb to ticklist:', error);
+      console.error(`Error ${isOnTicklist ? 'removing' : 'adding'} climb from/to ticklist:`, error);
     }
-};
+  };
+
+  if (router.isFallback) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div style={styles.container}>
@@ -56,8 +78,10 @@ const ClimbDetail = ({ climb }) => {
         <p style={styles.firstAscentDate}>First Ascent Date: {new Date(first_ascent_date).toLocaleDateString('en-GB')}</p>
         <p style={styles.description}>{description || '\n'}</p>
 
-        {/* Add the button to add to ticklist here */}
-        <button onClick={() => addClimbToTicklist(id)} style={styles.button}>Tick</button>
+        {/* Conditionally render the button based on ticklist status */}
+        <button onClick={toggleTicklist} style={styles.button}>
+          {isOnTicklist ? 'Remove from Ticklist' : 'Add to Ticklist'}
+        </button>
 
         <div style={styles.mapContainer}>
           <LeafletMap initialPosition={{ lat: latitude, lng: longitude }} isEditable={false} />

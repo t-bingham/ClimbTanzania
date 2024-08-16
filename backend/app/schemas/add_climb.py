@@ -58,3 +58,17 @@ class TokenData(BaseModel):
 
 class ClimbIDRequest(BaseModel):
     climb_id: int
+
+
+class TickListBase(BaseModel):
+    climb_id: int
+
+class TickListCreate(TickListBase):
+    pass
+
+class TickList(TickListBase):
+    id: int
+    user_id: int
+
+    class Config:
+        from_attributes = True
