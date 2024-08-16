@@ -7,7 +7,8 @@ const LeafletMap = dynamic(() => import('../../components/leaflet_map'), { ssr: 
 
 const ClimbDetail = ({ climb }) => {
   const router = useRouter();
-  const [isOnTicklist, setIsOnTicklist] = useState(false); // State to track if climb is on ticklist
+  const [isOnTicklist, setIsOnTicklist] = useState(false);
+  const [isOnHitlist, setIsOnHitlist] = useState(false); // State to track if climb is on hitlist
 
   const {
     id,
@@ -25,23 +26,34 @@ const ClimbDetail = ({ climb }) => {
   const stars = '★'.repeat(quality);
 
   useEffect(() => {
-    // Check if the climb is on the ticklist when the component mounts
-    const checkIfOnTicklist = async () => {
+    // Check if the climb is on the ticklist and hitlist when the component mounts
+    const checkLists = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await axios.get('http://localhost:8000/ticklist/', {
+
+        // Check Ticklist
+        const ticklistResponse = await axios.get('http://localhost:8000/ticklist/', {
           headers: {
             Authorization: `Bearer ${token}`
           }
         });
-        const ticklist = response.data;
+        const ticklist = ticklistResponse.data;
         setIsOnTicklist(ticklist.some(item => item.id === climb.id));
+
+        // Check Hitlist
+        const hitlistResponse = await axios.get('http://localhost:8000/hitlist/', {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        const hitlist = hitlistResponse.data;
+        setIsOnHitlist(hitlist.some(item => item.id === climb.id));
       } catch (error) {
-        console.error('Error checking ticklist:', error);
+        console.error('Error checking lists:', error);
       }
     };
 
-    checkIfOnTicklist();
+    checkLists();
   }, [climb.id]);
 
   const toggleTicklist = async () => {
@@ -64,6 +76,26 @@ const ClimbDetail = ({ climb }) => {
     }
   };
 
+  const toggleHitlist = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const url = `http://localhost:8000/hitlist/${isOnHitlist ? 'remove' : 'add'}`;
+      const response = await axios.post(
+        url,
+        { climb_id: climb.id },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+      setIsOnHitlist(!isOnHitlist); // Toggle the state after successful add/remove
+      console.log(`Climb ${isOnHitlist ? 'removed from' : 'added to'} hitlist:`, response.data);
+    } catch (error) {
+      console.error(`Error ${isOnHitlist ? 'removing' : 'adding'} climb from/to hitlist:`, error);
+    }
+  };
+
   if (router.isFallback) {
     return <div>Loading...</div>;
   }
@@ -78,10 +110,14 @@ const ClimbDetail = ({ climb }) => {
         <p style={styles.firstAscentDate}>First Ascent Date: {new Date(first_ascent_date).toLocaleDateString('en-GB')}</p>
         <p style={styles.description}>{description || '\n'}</p>
 
-        {/* Conditionally render the button based on ticklist status */}
-        <button onClick={toggleTicklist} style={styles.button}>
-          {isOnTicklist ? 'Remove from Ticklist' : 'Add to Ticklist'}
-        </button>
+        <div style={styles.buttonContainer}>
+          <button onClick={toggleTicklist} style={styles.button}>
+            {isOnTicklist ? 'Untick' : 'Tick'}
+          </button>
+          <button onClick={toggleHitlist} style={styles.button}>
+            {isOnHitlist ? 'Unhit' : 'Hit'}
+          </button>
+        </div>
 
         <div style={styles.mapContainer}>
           <LeafletMap initialPosition={{ lat: latitude, lng: longitude }} isEditable={false} />
@@ -165,6 +201,13 @@ const styles = {
     justifyContent: 'center',
     marginBottom: '100px', // Ensure the map doesn't overlap with the footer
   },
+  buttonContainer: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    width: '50%', // Adjust this as needed
+    marginTop: '20px',
+    marginBottom: '40px',
+  },
   button: {
     backgroundColor: '#050505',
     color: '#fff',
@@ -172,8 +215,9 @@ const styles = {
     borderRadius: '5px',
     border: 'none',
     cursor: 'pointer',
-    marginTop: '20px',
-    marginBottom: '40px',
+    flex: 1, // Make buttons share available space
+    marginLeft: '10px',
+    marginRight: '10px',
   },
 };
 

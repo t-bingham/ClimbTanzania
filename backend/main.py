@@ -402,6 +402,65 @@ def get_ticklist(current_user: models.User = Depends(get_current_user), db: Sess
     return ticklist_climbs
 
 
+@app.post("/hitlist/add")
+async def add_to_hitlist(request: schemas.HitListCreate, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    try:
+        climb = db.query(models.Climb).filter(models.Climb.id == request.climb_id).first()
+        if not climb:
+            raise HTTPException(status_code=404, detail="Climb not found")
+        
+        # Check if the climb is already in the user's hitlist
+        existing_entry = db.query(models.Hitlist).filter(models.Hitlist.user_id == current_user.id, models.Hitlist.climb_id == climb.id).first()
+        if existing_entry:
+            raise HTTPException(status_code=400, detail="Climb already in hitlist")
+        
+        # Add the climb to the user's hitlist
+        new_entry = models.Hitlist(user_id=current_user.id, climb_id=climb.id)
+        db.add(new_entry)
+        db.commit()
+        
+        return {"msg": "Climb added to hitlist"}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.post("/hitlist/remove")
+async def remove_from_hitlist(request: schemas.ClimbIDRequest, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    try:
+        climb = db.query(models.Climb).filter(models.Climb.id == request.climb_id).first()
+        if not climb:
+            raise HTTPException(status_code=404, detail="Climb not found")
+        
+        # Check if the climb is in the user's hitlist
+        existing_entry = db.query(models.Hitlist).filter(models.Hitlist.user_id == current_user.id, models.Hitlist.climb_id == climb.id).first()
+        if not existing_entry:
+            raise HTTPException(status_code=400, detail="Climb not in hitlist")
+        
+        # Remove the climb from the user's hitlist
+        db.delete(existing_entry)
+        db.commit()
+        
+        return {"msg": "Climb removed from hitlist"}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.get("/hitlist/", response_model=List[schemas.Climb])
+def get_hitlist(current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
+    hitlist_climbs = (
+        db.query(models.Climb)
+        .join(models.Hitlist, models.Climb.id == models.Hitlist.climb_id)
+        .filter(models.Hitlist.user_id == current_user.id)
+        .all()
+    )
+
+    for climb in hitlist_climbs:
+        if isinstance(climb.first_ascent_date, date):
+            climb.first_ascent_date = climb.first_ascent_date.isoformat()
+
+    return hitlist_climbs
+
+
 def assign_climbs_to_area(area, db):
     climbs = db.query(models.Climb).all()
     for climb in climbs:

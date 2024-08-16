@@ -33,12 +33,19 @@ class User(Base):
     username = Column(String, unique=True, index=True)
     email = Column(String, unique=True, index=True)
     hashed_password = Column(String)
-    ticklist = relationship("Ticklist", back_populates="user")
 
 class Ticklist(Base):
     __tablename__ = 'ticklist'
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey('users.id'))
     climb_id = Column(Integer, ForeignKey('climbs.id'))
-    user = relationship("User", back_populates="ticklist")
+    user = relationship("User")
+    climb = relationship("Climb")
+
+class Hitlist(Base):
+    __tablename__ = "hitlist"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    climb_id = Column(Integer, ForeignKey("climbs.id"))
+    user = relationship("User")
     climb = relationship("Climb")

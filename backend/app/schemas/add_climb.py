@@ -72,3 +72,17 @@ class TickList(TickListBase):
 
     class Config:
         from_attributes = True
+
+class HitListBase(BaseModel):
+    climb_id: int
+
+class HitListCreate(HitListBase):
+    pass
+
+class HitList(HitListBase):
+    id: int
+    user_id: int
+
+    class Config:
+        from_attributes = True
+
