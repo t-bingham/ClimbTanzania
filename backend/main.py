@@ -402,6 +402,69 @@ def get_ticklist(current_user: models.User = Depends(get_current_user), db: Sess
     return ticklist_climbs
 
 
+@app.post("/logs/")
+async def create_log(log: schemas.LogCreate, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    new_log = models.Log(
+        user_id=current_user.id,
+        climb_id=log.climb_id,
+        date=log.date,
+        grade=log.grade,
+        comment=log.comment,
+    )
+    db.add(new_log)
+    db.commit()
+    db.refresh(new_log)
+    return new_log
+
+
+@app.post("/logs/add")
+async def add_log(request: schemas.LogCreate, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    try:
+        climb = db.query(models.Climb).filter(models.Climb.id == request.climb_id).first()
+        if not climb:
+            raise HTTPException(status_code=404, detail="Climb not found")
+
+        # Check if a log for this climb already exists for the user
+        existing_log = db.query(models.Log).filter(
+            models.Log.user_id == current_user.id,
+            models.Log.climb_id == climb.id
+        ).first()
+        if existing_log:
+            raise HTTPException(status_code=400, detail="Log for this climb already exists")
+
+        # Add the log to the user's logs
+        new_log = models.Log(
+            user_id=current_user.id,
+            climb_id=climb.id,
+            date=request.date,
+            grade=request.grade,
+            comment=request.comment
+        )
+        db.add(new_log)
+        db.commit()
+
+        return {"msg": "Log added successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.post("/logs/remove")
+async def remove_log(request: schemas.ClimbIDRequest, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    try:
+        log = db.query(models.Log).filter(models.Log.user_id == current_user.id, models.Log.climb_id == request.climb_id).first()
+        if not log:
+            raise HTTPException(status_code=404, detail="Log not found")
+
+        db.delete(log)
+        db.commit()
+
+        return {"msg": "Log removed successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+
+
 @app.post("/hitlist/add")
 async def add_to_hitlist(request: schemas.HitListCreate, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
     try:

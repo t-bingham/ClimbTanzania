@@ -86,3 +86,22 @@ class HitList(HitListBase):
     class Config:
         from_attributes = True
 
+class LogBase(BaseModel):
+    climb_id: int
+    date: str
+    grade: str
+    comment: str
+
+class LogCreate(LogBase):
+    pass
+
+class Log(LogBase):
+    id: int
+    user_id: int
+
+    class Config:
+        from_attributes = True
+
+class LogIDRequest(BaseModel):
+    log_id: int
+

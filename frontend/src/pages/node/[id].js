@@ -8,7 +8,7 @@ const LeafletMap = dynamic(() => import('../../components/leaflet_map'), { ssr: 
 const ClimbDetail = ({ climb }) => {
   const router = useRouter();
   const [isOnTicklist, setIsOnTicklist] = useState(false);
-  const [isOnHitlist, setIsOnHitlist] = useState(false); // State to track if climb is on hitlist
+  const [isOnHitlist, setIsOnHitlist] = useState(false);
 
   const {
     id,
@@ -26,7 +26,6 @@ const ClimbDetail = ({ climb }) => {
   const stars = '★'.repeat(quality);
 
   useEffect(() => {
-    // Check if the climb is on the ticklist and hitlist when the component mounts
     const checkLists = async () => {
       try {
         const token = localStorage.getItem('token');
@@ -59,7 +58,9 @@ const ClimbDetail = ({ climb }) => {
   const toggleTicklist = async () => {
     try {
       const token = localStorage.getItem('token');
-      const url = `http://localhost:8000/ticklist/${isOnTicklist ? 'remove' : 'add'}`;
+      const isRemoving = isOnTicklist;
+      const url = `http://localhost:8000/ticklist/${isRemoving ? 'remove' : 'add'}`;
+  
       const response = await axios.post(
         url,
         { climb_id: climb.id },
@@ -69,12 +70,34 @@ const ClimbDetail = ({ climb }) => {
           }
         }
       );
-      setIsOnTicklist(!isOnTicklist); // Toggle the state after successful add/remove
-      console.log(`Climb ${isOnTicklist ? 'removed from' : 'added to'} ticklist:`, response.data);
+  
+      if (!isRemoving) {
+        // If the climb is being added to the ticklist, redirect to the logging page
+        router.push(`/log/${climb.id}`);
+      } else {
+        // If the climb is being removed from the ticklist, remove the associated log
+        const logResponse = await axios.post(
+          'http://localhost:8000/logs/remove',
+          { climb_id: climb.id },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          }
+        );
+  
+        console.log('Log removed:', logResponse.data);
+  
+        // Update the state to reflect that the climb has been removed from the ticklist
+        setIsOnTicklist(false);
+      }
+  
+      console.log(`Climb ${isRemoving ? 'removed from' : 'added to'} ticklist:`, response.data);
     } catch (error) {
       console.error(`Error ${isOnTicklist ? 'removing' : 'adding'} climb from/to ticklist:`, error);
     }
   };
+  
 
   const toggleHitlist = async () => {
     try {
@@ -89,7 +112,7 @@ const ClimbDetail = ({ climb }) => {
           }
         }
       );
-      setIsOnHitlist(!isOnHitlist); // Toggle the state after successful add/remove
+      setIsOnHitlist(!isOnHitlist);
       console.log(`Climb ${isOnHitlist ? 'removed from' : 'added to'} hitlist:`, response.data);
     } catch (error) {
       console.error(`Error ${isOnHitlist ? 'removing' : 'adding'} climb from/to hitlist:`, error);
