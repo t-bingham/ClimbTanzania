@@ -158,7 +158,7 @@ const ClimbDetail = ({ climb }) => {
             <table style={styles.logsTable}>
               <thead>
                 <tr>
-                  <th style={styles.tableHeader}>Username</th>
+                  <th style={styles.tableHeader}>Name</th>
                   <th style={styles.tableHeader}>Grade</th>
                   <th style={styles.tableHeader}>Date</th>
                   <th style={styles.tableHeader}>Comment</th>

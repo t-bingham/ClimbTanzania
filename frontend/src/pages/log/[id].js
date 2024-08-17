@@ -76,7 +76,7 @@ const LogPage = ({ climb }) => {
           name="comment"
           value={logData.comment}
           onChange={handleChange}
-          maxLength="100"
+          maxLength="200"
           style={styles.textarea}
         />
 
