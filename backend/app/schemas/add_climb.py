@@ -102,6 +102,10 @@ class Log(LogBase):
     class Config:
         from_attributes = True
 
+# New schema for displaying logs with usernames
+class LogWithUser(Log):
+    username: str  # Add the username field
+
 class LogIDRequest(BaseModel):
     log_id: int
 

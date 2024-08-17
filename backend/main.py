@@ -463,6 +463,28 @@ async def remove_log(request: schemas.ClimbIDRequest, db: Session = Depends(get_
         raise HTTPException(status_code=400, detail=str(e))
 
 
+@app.get("/climbs/{id}/logs", response_model=List[schemas.LogWithUser])
+async def get_climb_logs(id: int, db: Session = Depends(get_db)):
+    logs = (
+        db.query(models.Log, models.User.username)
+        .join(models.User, models.Log.user_id == models.User.id)
+        .filter(models.Log.climb_id == id)
+        .all()
+    )
+
+    return [
+        schemas.LogWithUser(
+            id=log.Log.id,
+            climb_id=log.Log.climb_id,
+            date=log.Log.date,
+            grade=log.Log.grade,
+            comment=log.Log.comment,
+            user_id=log.Log.user_id,
+            username=log.username
+        )
+        for log in logs
+    ]
+
 
 
 @app.post("/hitlist/add")

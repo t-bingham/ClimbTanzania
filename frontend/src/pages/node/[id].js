@@ -9,6 +9,7 @@ const ClimbDetail = ({ climb }) => {
   const router = useRouter();
   const [isOnTicklist, setIsOnTicklist] = useState(false);
   const [isOnHitlist, setIsOnHitlist] = useState(false);
+  const [logs, setLogs] = useState([]); // State to store logs
 
   const {
     id,
@@ -47,8 +48,12 @@ const ClimbDetail = ({ climb }) => {
         });
         const hitlist = hitlistResponse.data;
         setIsOnHitlist(hitlist.some(item => item.id === climb.id));
+
+        // Fetch logs for the climb
+        const logsResponse = await axios.get(`http://localhost:8000/climbs/${id}/logs`);
+        setLogs(logsResponse.data);
       } catch (error) {
-        console.error('Error checking lists:', error);
+        console.error('Error checking lists or fetching logs:', error);
       }
     };
 
@@ -90,6 +95,8 @@ const ClimbDetail = ({ climb }) => {
   
         // Update the state to reflect that the climb has been removed from the ticklist
         setIsOnTicklist(false);
+        // Also remove the log from the displayed logs
+        setLogs(logs.filter(log => log.climb_id !== climb.id));
       }
   
       console.log(`Climb ${isRemoving ? 'removed from' : 'added to'} ticklist:`, response.data);
@@ -97,7 +104,6 @@ const ClimbDetail = ({ climb }) => {
       console.error(`Error ${isOnTicklist ? 'removing' : 'adding'} climb from/to ticklist:`, error);
     }
   };
-  
 
   const toggleHitlist = async () => {
     try {
@@ -144,6 +150,34 @@ const ClimbDetail = ({ climb }) => {
 
         <div style={styles.mapContainer}>
           <LeafletMap initialPosition={{ lat: latitude, lng: longitude }} isEditable={false} />
+        </div>
+
+        <div style={styles.logsContainer}>
+          <h2 style={styles.logsTitle}>User Logs</h2>
+          {logs.length > 0 ? (
+            <table style={styles.logsTable}>
+              <thead>
+                <tr>
+                  <th style={styles.tableHeader}>Username</th>
+                  <th style={styles.tableHeader}>Grade</th>
+                  <th style={styles.tableHeader}>Date</th>
+                  <th style={styles.tableHeader}>Comment</th>
+                </tr>
+              </thead>
+              <tbody>
+                {logs.map((log, index) => (
+                  <tr key={index}>
+                    <td style={styles.tableCell}>{log.username}</td>
+                    <td style={styles.tableCell}>{log.grade}</td>
+                    <td style={styles.tableCell}>{new Date(log.date).toLocaleDateString('en-GB')}</td>
+                    <td style={styles.tableCell}>{log.comment || 'No comment'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <p style={styles.noLogsMessage}>No logs, be the first to send and submit!</p>
+          )}
         </div>
       </main>
     </div>
@@ -241,6 +275,37 @@ const styles = {
     flex: 1, // Make buttons share available space
     marginLeft: '10px',
     marginRight: '10px',
+  },
+  logsContainer: {
+    marginTop: '40px',
+    width: '100%',
+    maxWidth: '75vw',
+  },
+  logsTitle: {
+    fontSize: '2rem',
+    fontWeight: 'bold',
+    marginBottom: '20px',
+    textAlign: 'center',
+  },
+  logsTable: {
+    width: '100%',
+    borderCollapse: 'collapse',
+  },
+  tableHeader: {
+    borderBottom: '1px solid #ddd',
+    padding: '10px',
+    textAlign: 'left',
+    backgroundColor: '#f2f2f2',
+  },
+  tableCell: {
+    borderBottom: '1px solid #ddd',
+    padding: '10px',
+    textAlign: 'left',
+  },
+  noLogsMessage: {
+    textAlign: 'center',
+    fontSize: '1.2rem',
+    marginTop: '20px',
   },
 };
 
