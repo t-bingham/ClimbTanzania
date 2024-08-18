@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/router';
+import debounce from 'lodash.debounce'; // Import lodash.debounce
 
 const ClimbForm = ({ pinCoordinates, updatePinCoordinates }) => {
   const router = useRouter();
@@ -19,6 +20,8 @@ const ClimbForm = ({ pinCoordinates, updatePinCoordinates }) => {
 
   const [isConfirmed, setIsConfirmed] = useState(false);
   const [isFormValid, setIsFormValid] = useState(false);
+  const [userSuggestions, setUserSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   useEffect(() => {
     if (pinCoordinates) {
@@ -80,6 +83,31 @@ const ClimbForm = ({ pinCoordinates, updatePinCoordinates }) => {
 
   const handleEditCoordinates = () => {
     setIsConfirmed(false);
+  };
+
+  const searchUsers = debounce(async (query) => {
+    if (query.length < 3) {
+      setShowSuggestions(false);
+      return;
+    }
+    try {
+      const response = await axios.get(`http://localhost:8000/users?search=${query}`);
+      setUserSuggestions(response.data);
+      setShowSuggestions(true);
+    } catch (error) {
+      console.error('Error fetching user suggestions:', error);
+    }
+  }, 300); // Delay search by 300ms
+
+  const handleUserInputChange = (e) => {
+    const value = e.target.value;
+    setFormData({ ...formData, first_ascensionist: value });
+    searchUsers(value);
+  };
+
+  const handleUserSelect = (user) => {
+    setFormData({ ...formData, first_ascensionist: user.username });
+    setShowSuggestions(false);
   };
 
   const gradeOptions = {
@@ -175,7 +203,24 @@ const ClimbForm = ({ pinCoordinates, updatePinCoordinates }) => {
       </div>
       <div>
         <label style={requiredLabelStyle}><span style={requiredStarStyle}>*</span> First Ascensionist:</label>
-        <input type="text" name="first_ascensionist" value={formData.first_ascensionist} onChange={handleChange} required style={inputStyle} />
+        <input
+          type="text"
+          name="first_ascensionist"
+          value={formData.first_ascensionist}
+          onChange={handleUserInputChange}
+          required
+          style={inputStyle}
+          autoComplete="off"
+        />
+        {showSuggestions && (
+          <ul style={{ border: '1px solid #ccc', marginTop: '5px', listStyleType: 'none', padding: '0', maxHeight: '100px', overflowY: 'auto' }}>
+            {userSuggestions.map((user) => (
+              <li key={user.id} onClick={() => handleUserSelect(user)} style={{ padding: '5px', cursor: 'pointer' }}>
+                {user.username}
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
       <div>
         <label style={requiredLabelStyle}><span style={requiredStarStyle}>*</span> First Ascent Date:</label>

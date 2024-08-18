@@ -116,9 +116,10 @@ async def read_users_me(current_user: models.User = Depends(get_current_user)):
 models.Base.metadata.create_all(bind=engine)
 
 @app.get("/users/", response_model=List[schemas.User])
-def get_users(db: Session = Depends(get_db)):
-    users = db.query(models.User).all()
+def get_users(search: str = '', db: Session = Depends(get_db)):
+    users = db.query(models.User).filter(models.User.username.ilike(f'%{search}%')).all()
     return users
+
 
 @app.get("/users/{id}", response_model=schemas.User)
 def get_user_by_id(id: int, db: Session = Depends(get_db)):
