@@ -1,51 +1,46 @@
 import Link from 'next/link';
-import DropdownMenu from './dropdown_menu'; // Ensure this is the correct path to your dropdown_menu component
+import DropdownMenu from './dropdown_menu'; 
 import { useRouter } from 'next/router';
+import { FaBars } from 'react-icons/fa';
 
 const Header = () => {
   const router = useRouter();
 
   const handleLogout = () => {
-    // Clear the token from local storage
     localStorage.removeItem('token');
-
-    // Redirect to the login page
     router.push('/login');
   };
 
-  const indexOptions = [
+  const climbsOptions = [
     { href: '/climbs', label: 'Climbs Index' },
     { href: '/boulder_index', label: 'Boulder Index' },
     { href: '/sport_index', label: 'Sport Index' },
     { href: '/trad_index', label: 'Trad Index' },
-  ];
-
-  const mapOptions = [
     { href: '/boulder_map', label: 'Boulder Map' },
     { href: '/sport_map', label: 'Sport Map' },
     { href: '/trad_map', label: 'Trad Map' },
   ];
 
-  const addOptions = [
-    { href: '/add_climb', label: 'Add a Climb' },
-    { href: '/add_area', label: 'Add an Area' },
+  const profileOptions = [
+    { href: '/profile', label: 'Profile' },
+    { href: '/hitlist', label: 'Hitlist' }, 
+    { href: '/add_climb', label: 'Add a Climb' }, 
+    { href: '/add_area', label: 'Add an Area' }, 
+    { label: 'Logout', onClick: handleLogout },
   ];
 
   return (
     <header style={styles.header}>
-      <div style={styles.logoContainer}>
+      <div style={styles.leftContainer}>
         <Link href="/">
           <img src="/logo.png" alt="Logo" style={styles.logo} />
         </Link>
         <nav style={styles.nav}>
-          <DropdownMenu label="Indexes" options={indexOptions} />
-          <DropdownMenu label="Maps" options={mapOptions} />
-          <DropdownMenu label="Add" options={addOptions} />
+          <DropdownMenu label="Climbs" options={climbsOptions} />
         </nav>
       </div>
-      <div style={styles.buttonContainer}>
-        <button style={styles.profileButton}>Profile</button>
-        <button style={styles.logoutButton} onClick={handleLogout}>Logout</button>
+      <div style={styles.rightContainer}>
+        <DropdownMenu label={<FaBars />} options={profileOptions} isBurgerMenu={true} />
       </div>
     </header>
   );
@@ -63,12 +58,12 @@ const styles = {
     zIndex: 100000,
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'space-between', // Ensures space between the logo and logout button
+    justifyContent: 'space-between',
   },
-  logoContainer: {
+  leftContainer: {
     display: 'flex',
     alignItems: 'center',
-    paddingLeft: '15px',
+    marginLeft: '15px',
   },
   logo: {
     height: '50px',
@@ -76,32 +71,15 @@ const styles = {
   },
   nav: {
     display: 'flex',
-    justifyContent: 'flex-start',
-    paddingLeft: '30px', // Add padding to the left of the dropdown menu
+    marginLeft: '20px',
   },
-  buttonContainer: {
+  rightContainer: {
     display: 'flex',
     alignItems: 'center',
-    paddingRight: '15px',
-  },
-  logoutButton: {
-    backgroundColor: 'black',
-    color: 'white',
-    padding: '10px 20px',
-    fontSize: '16px',
-    border: 'none',
-    cursor: 'pointer',
-    borderRadius: '5px', // Rounded edges
-    marginLeft: '10px',
-  },
-  profileButton: {
-    backgroundColor: 'black',
-    color: 'white',
-    padding: '10px 20px',
-    fontSize: '16px',
-    border: 'none',
-    cursor: 'pointer',
-    borderRadius: '5px', // Rounded edges
+    position: 'absolute',
+    right: '15px',
+    top: '50%',
+    transform: 'translateY(-50%)',
   },
 };
 
