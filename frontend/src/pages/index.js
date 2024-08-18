@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Link from 'next/link';
 import withAuth from '../hoc/withAuth';
+import styles from '../styles/climbs.module.css';
 
 function Home() {
   const [recentTicks, setRecentTicks] = useState([]);
@@ -42,179 +43,125 @@ function Home() {
   }, []);
 
   return (
-    <div style={styles.container}>
-      <main style={styles.main}>
-        <div style={styles.content}>
-          <h1 style={styles.title}>Welcome to ClimbTanzania!</h1>
-          <p style={styles.textBlock}>This is the homepage of ClimbTanzania.</p>
+    <div className={styles.container}>
+      <div className={styles.content}>
+        <h1 className={styles.title}>Welcome to ClimbTanzania!</h1>
+        <p className={styles.textBlock}>This is the homepage of ClimbTanzania.</p>
 
-          {/* Recent Ticks */}
-          <div style={styles.section}>
-            <h2 style={styles.sectionTitle}>Recent Ticks</h2>
-            <table style={styles.table}>
+        {/* Recent Ticks */}
+        <div className={styles.section}>
+          <h2 className={styles.sectionTitle}>Recent Ticks</h2>
+          <div className={styles.tableContainer}>
+            <table className={styles.table}>
               <thead>
                 <tr>
-                  <th>User</th>
-                  <th>Name</th>
-                  <th>Grade</th>
-                  <th>Tick Date</th>
-                  <th>Type</th>
+                  <th className={styles.wideColumn}>User</th>
+                  <th className={styles.wideColumn}>Name</th>
+                  <th className={styles.narrowColumn}>Grade</th>
+                  <th className={styles.narrowColumn}>Tick Date</th>
+                  <th className={styles.narrowColumn}>Type</th>
                 </tr>
               </thead>
               <tbody>
                 {recentTicks.map(tick => (
                   <tr key={tick.id}>
-                    <td>
+                    <td className={styles.wideColumn}>
                       <Link href={`/profile/${tick.user_id}`}>
-                        <span style={styles.link}>{tick.username}</span>
+                        <span className={styles.link}>{tick.username}</span>
                       </Link>
                     </td>
-                    <td>
+                    <td className={styles.wideColumn}>
                       <Link href={`/node/${tick.climb_id}`}>
-                        <span style={styles.link}>{tick.name}</span>
+                        <span className={styles.link}>{tick.name}</span>
                       </Link>
                     </td>
-                    <td>{tick.grade || 'N/A'}</td>
-                    <td>{tick.date}</td>
-                    <td>{tick.type}</td>
+                    <td className={styles.narrowColumn}>{tick.grade || 'N/A'}</td>
+                    <td className={styles.narrowColumn}>{tick.date}</td>
+                    <td className={styles.narrowColumn}>{tick.type}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
+        </div>
 
-          {/* Recent First Ascents */}
-          <div style={styles.section}>
-            <h2 style={styles.sectionTitle}>Recent First Ascents</h2>
-            <table style={styles.table}>
+        {/* Recent First Ascents */}
+        <div className={styles.section}>
+          <h2 className={styles.sectionTitle}>Recent First Ascents</h2>
+          <div className={styles.tableContainer}>
+            <table className={styles.table}>
               <thead>
                 <tr>
-                  <th>User</th>
-                  <th>Name</th>
-                  <th>Grade</th>
-                  <th>First Ascent Date</th>
-                  <th>Type</th>
+                  <th className={styles.wideColumn}>User</th>
+                  <th className={styles.wideColumn}>Name</th>
+                  <th className={styles.narrowColumn}>Grade</th>
+                  <th className={styles.narrowColumn}>First Ascent Date</th>
+                  <th className={styles.narrowColumn}>Type</th>
                 </tr>
               </thead>
               <tbody>
                 {recentFirstAscents.map(climb => (
                   <tr key={climb.id}>
-                    <td>
+                    <td className={styles.wideColumn}>
                       <Link href={`/profile/${climb.user_id}`}>
-                        <span style={styles.link}>{climb.username}</span>
+                        <span className={styles.link}>{climb.username}</span>
                       </Link>
                     </td>
-                    <td>
+                    <td className={styles.wideColumn}>
                       <Link href={`/node/${climb.id}`}>
-                        <span style={styles.link}>{climb.name}</span>
+                        <span className={styles.link}>{climb.name}</span>
                       </Link>
                     </td>
-                    <td>{climb.grade || 'N/A'}</td>
-                    <td>{climb.first_ascent_date}</td>
-                    <td>{climb.type || 'N/A'}</td>
+                    <td className={styles.narrowColumn}>{climb.grade || 'N/A'}</td>
+                    <td className={styles.narrowColumn}>{climb.first_ascent_date}</td>
+                    <td className={styles.narrowColumn}>{climb.type || 'N/A'}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
+        </div>
 
-          {/* Recent Big Ticks */}
-          <div style={styles.section}>
-            <h2 style={styles.sectionTitle}>Recent Big Ticks</h2>
-            <table style={styles.table}>
+        {/* Recent Big Ticks */}
+        <div className={styles.section}>
+          <h2 className={styles.sectionTitle}>Recent Big Ticks</h2>
+          <div className={styles.tableContainer}>
+            <table className={styles.table}>
               <thead>
                 <tr>
-                  <th>User</th>
-                  <th>Name</th>
-                  <th>Grade</th>
-                  <th>Tick Date</th>
-                  <th>Type</th>
+                  <th className={styles.wideColumn}>User</th>
+                  <th className={styles.wideColumn}>Name</th>
+                  <th className={styles.narrowColumn}>Grade</th>
+                  <th className={styles.narrowColumn}>Tick Date</th>
+                  <th className={styles.narrowColumn}>Type</th>
                 </tr>
               </thead>
               <tbody>
                 {recentBigTicks.map(tick => (
                   <tr key={tick.id}>
-                    <td>
+                    <td className={styles.wideColumn}>
                       <Link href={`/profile/${tick.user_id}`}>
-                        <span style={styles.link}>{tick.username}</span>
+                        <span className={styles.link}>{tick.username}</span>
                       </Link>
                     </td>
-                    <td>
+                    <td className={styles.wideColumn}>
                       <Link href={`/node/${tick.climb_id}`}>
-                        <span style={styles.link}>{tick.name}</span>
+                        <span className={styles.link}>{tick.name}</span>
                       </Link>
                     </td>
-                    <td>{tick.grade || 'N/A'}</td>
-                    <td>{tick.date}</td>
-                    <td>{tick.type}</td>
+                    <td className={styles.narrowColumn}>{tick.grade || 'N/A'}</td>
+                    <td className={styles.narrowColumn}>{tick.date}</td>
+                    <td className={styles.narrowColumn}>{tick.type}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-
         </div>
-      </main>
+
+      </div>
     </div>
   );
 }
 
 export default withAuth(Home);
-
-const styles = {
-  container: {
-    display: 'flex',
-    flexDirection: 'column',
-    minHeight: '100vh',
-  },
-  main: {
-    display: 'flex',
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingBottom: '60px', // Ensure there's space for the footer
-  },
-  content: {
-    width: '80%',
-    maxWidth: '800px',
-    textAlign: 'center',
-    padding: '20px',
-  },
-  title: {
-    fontWeight: 'bold',
-    fontSize: '32px',
-    paddingBottom: '10px',
-  },
-  textBlock: {
-    marginBottom: '20px',
-    lineHeight: '1.6',
-    fontSize: '18px',
-  },
-  section: {
-    marginTop: '40px',
-    textAlign: 'left',
-  },
-  sectionTitle: {
-    fontWeight: 'bold',
-    fontSize: '24px',
-    marginBottom: '10px',
-  },
-  table: {
-    width: '100%',
-    borderCollapse: 'collapse',
-    marginBottom: '20px',
-  },
-  tableHeader: {
-    backgroundColor: '#f0f0f0',
-    fontWeight: 'bold',
-  },
-  tableCell: {
-    border: '1px solid #ddd',
-    padding: '8px',
-  },
-  link: {
-    color: '#0070f3',
-    textDecoration: 'none',
-    cursor: 'pointer',
-  },
-};
