@@ -20,6 +20,7 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     )
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        print("Decoded JWT Payload:", payload)  # Debugging line
         username: str = payload.get("sub")
         if username is None:
             raise credentials_exception
@@ -30,3 +31,4 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     if user is None:
         raise credentials_exception
     return user
+

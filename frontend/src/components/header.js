@@ -1,13 +1,21 @@
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import DropdownMenu from './dropdown_menu'; 
 import { useRouter } from 'next/router';
 import { FaBars } from 'react-icons/fa';
 
 const Header = () => {
+  const [userId, setUserId] = useState(null);
   const router = useRouter();
+
+  useEffect(() => {
+    const storedUserId = localStorage.getItem('userId');
+    setUserId(storedUserId);
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('userId');
     router.push('/login');
   };
 
@@ -22,7 +30,7 @@ const Header = () => {
   ];
 
   const profileOptions = [
-    { href: '/profile', label: 'Profile' },
+    { href: userId ? `/profile/${userId}` : '#', label: 'Profile' },
     { href: '/hitlist', label: 'Hitlist' }, 
     { href: '/add_climb', label: 'Add a Climb' }, 
     { href: '/add_area', label: 'Add an Area' }, 

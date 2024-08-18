@@ -23,7 +23,23 @@ export default function Login() {
       if (res.ok) {
         const data = await res.json();
         localStorage.setItem('token', data.access_token);
-        router.push('/');
+  
+        const profileRes = await fetch('http://localhost:8000/users/me', {
+          headers: {
+            'Authorization': `Bearer ${data.access_token}`,
+          },
+        });
+  
+        if (profileRes.ok) {
+          const profileData = await profileRes.json();
+          const userId = profileData.id.toString(); // Convert userId to string
+          localStorage.setItem('userId', userId); // Store userId in localStorage
+  
+         // Redirect to the home page
+          router.push('/');
+        } else {
+          setError('Failed to fetch user profile');
+        }
       } else {
         const errorData = await res.json();
         setError(errorData.detail || 'Invalid username or password');
@@ -32,6 +48,7 @@ export default function Login() {
       setError('Failed to connect to the server');
     }
   };
+  
 
   const handleSignup = () => {
     router.push('/register');

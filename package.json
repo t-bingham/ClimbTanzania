@@ -3,6 +3,7 @@
     "autoprefixer": "^10.4.19",
     "axios": "^1.7.2",
     "eslint": "^9.7.0",
+    "js-cookie": "^3.0.5",
     "leaflet": "^1.9.4",
     "leaflet.markercluster": "^1.5.3",
     "next": "^14.2.5",

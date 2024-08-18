@@ -59,3 +59,33 @@
     font-size: 24px; /* Smaller font size for mobile devices */
   }
 }
+
+.tabs {
+  display: flex;
+  justify-content: space-between; /* Distribute the tabs evenly */
+  width: 100%; /* Make the tabs container take up the full width of the content */
+  margin-bottom: 20px;
+}
+
+.tabs button {
+  flex-grow: 1; /* Make each button take up an equal amount of space */
+  padding: 10px 20px;
+  border: none;
+  background-color: #f0f0f0;
+  cursor: pointer;
+  font-size: 16px;
+  text-align: center;
+}
+
+.tabs button:not(:last-child) {
+  margin-right: 5px; /* Add space between the tabs */
+}
+
+.tabs button:hover {
+  background-color: #e0e0e0;
+}
+
+.tabs button.activeTab {
+  background-color: black;
+  color: white;
+}

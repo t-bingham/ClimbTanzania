@@ -9,7 +9,8 @@ import * as wellknown from 'wellknown';
 const BoulderIndex = ({ initialClimbs }) => {
   const [climbs, setClimbs] = useState(initialClimbs);
   const [areas, setAreas] = useState([]);
-  const [hitlistClimbs, setHitlistClimbs] = useState([]); // State to store hitlist climbs
+  const [hitlistClimbs, setHitlistClimbs] = useState([]);
+  const [users, setUsers] = useState([]);
 
   useEffect(() => {
     const fetchAreas = async () => {
@@ -19,10 +20,10 @@ const BoulderIndex = ({ initialClimbs }) => {
           .filter(area => area.polygon)
           .map(area => {
             const parsed = wellknown.parse(area.polygon);
-            const invertedCoordinates = parsed.coordinates[0].map(coord => [coord[1], coord[0]]); // Invert lat/lng
+            const invertedCoordinates = parsed.coordinates[0].map(coord => [coord[1], coord[0]]);
             return {
               ...area,
-              path: invertedCoordinates, // Use inverted coordinates
+              path: invertedCoordinates,
             };
           });
         setAreas(parsedAreas);
@@ -39,14 +40,24 @@ const BoulderIndex = ({ initialClimbs }) => {
             Authorization: `Bearer ${token}`
           }
         });
-        setHitlistClimbs(response.data.map(climb => climb.id)); // Store hitlist climb IDs
+        setHitlistClimbs(response.data.map(climb => climb.id));
       } catch (error) {
         console.error('Error fetching hitlist:', error);
       }
     };
 
+    const fetchUsers = async () => {
+      try {
+        const response = await axios.get('http://localhost:8000/users/');
+        setUsers(response.data);
+      } catch (error) {
+        console.error('Error fetching users:', error);
+      }
+    };
+
     fetchAreas();
     fetchHitlist();
+    fetchUsers();
   }, []);
 
   const applyFilters = async (selectedGrades, selectedAreas) => {
@@ -88,6 +99,14 @@ const BoulderIndex = ({ initialClimbs }) => {
     }
   };
 
+  const getFirstAscensionistLink = (firstAscensionist) => {
+    const user = users.find(u => u.username === firstAscensionist);
+    if (user) {
+      return <Link href={`/profile/${user.id}`} legacyBehavior><a className={styles.link}>{firstAscensionist}</a></Link>;
+    }
+    return firstAscensionist;
+  };
+
   return (
     <div className={styles.container}>
       <div className={styles.content}>
@@ -96,7 +115,7 @@ const BoulderIndex = ({ initialClimbs }) => {
           grades={[
             'V0-', 'V0', 'V1', 'V2', 'V3', 'V4', 'V5', 'V6', 'V7', 'V8', 'V9', 'V10', 'V11', 'V12', 'V13', 'V14', 'V15', 'V16', 'V17'
           ]}
-          areas={[...areas, { name: 'Independent Climbs', id: 'independent', path: [], color: 'red' }]}  // Pass areas
+          areas={[...areas, { name: 'Independent Climbs', id: 'independent', path: [], color: 'red' }]}
           onApply={applyFilters}
         />
         <div className={styles.tableContainer}>
@@ -108,7 +127,7 @@ const BoulderIndex = ({ initialClimbs }) => {
                 <th className={styles.wideColumn}>Area</th>
                 <th className={styles.wideColumn}>First Ascensionist</th>
                 <th className={styles.narrowColumn}>First Ascent Year</th>
-                <th className={styles.narrowColumn}>Hitlist</th> {/* New column for hitlist button */}
+                <th className={styles.narrowColumn}>Hitlist</th>
               </tr>
             </thead>
             <tbody>
@@ -121,7 +140,9 @@ const BoulderIndex = ({ initialClimbs }) => {
                   </td>
                   <td className={styles.narrowColumn}>{climb.grade || 'N/A'}</td>
                   <td className={styles.wideColumn}>{climb.area || 'N/A'}</td>
-                  <td className={styles.wideColumn}>{climb.first_ascensionist || 'N/A'}</td>
+                  <td className={styles.wideColumn}>
+                    {getFirstAscensionistLink(climb.first_ascensionist)}
+                  </td>
                   <td className={styles.narrowColumn}>
                     {climb.first_ascent_date ? new Date(climb.first_ascent_date).getFullYear() : 'N/A'}
                   </td>

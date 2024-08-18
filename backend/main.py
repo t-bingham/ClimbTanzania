@@ -109,18 +109,39 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = 
     return {"access_token": access_token, "token_type": "bearer"}
 
 @app.get("/users/me")
-async def read_users_me(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
-    user = get_user(db, token)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authentication credentials",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    return user
+async def read_users_me(current_user: models.User = Depends(get_current_user)):
+    return current_user
 
 # Initialize the database models
 models.Base.metadata.create_all(bind=engine)
+
+@app.get("/users/", response_model=List[schemas.User])
+def get_users(db: Session = Depends(get_db)):
+    users = db.query(models.User).all()
+    return users
+
+@app.get("/users/{id}", response_model=schemas.User)
+def get_user_by_id(id: int, db: Session = Depends(get_db)):
+    user = db.query(models.User).filter(models.User.id == id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
+
+@app.get("/users/{id}/ticks", response_model=List[schemas.Climb])
+def get_user_ticks(id: int, db: Session = Depends(get_db)):
+    ticklist_climbs = (
+        db.query(models.Climb)
+        .join(models.Ticklist, models.Climb.id == models.Ticklist.climb_id)
+        .filter(models.Ticklist.user_id == id)
+        .all()
+    )
+
+    for climb in ticklist_climbs:
+        if isinstance(climb.first_ascent_date, date):
+            climb.first_ascent_date = climb.first_ascent_date.isoformat()
+
+    return ticklist_climbs
+
 
 @app.post("/register")
 async def register(
@@ -195,8 +216,9 @@ def create_climb(climb: schemas.ClimbCreate, db: Session = Depends(get_db)):
         logger.error(f"Error inserting climb: {e}")
         raise HTTPException(status_code=400, detail=f"Error inserting climb: {e}")
 
+
 @app.get("/climbs/", response_model=List[schemas.Climb])
-def read_climbs(skip: int = 0, limit: int = 1000, grades: str = None, areas: str = None, type: str = None, db: Session = Depends(get_db)):
+def read_climbs(skip: int = 0, limit: int = 1000, grades: str = None, areas: str = None, type: str = None, first_ascensionist: str = None, db: Session = Depends(get_db)):
     query = db.query(models.Climb)
 
     # Filter by type (e.g., Boulder)
@@ -230,6 +252,10 @@ def read_climbs(skip: int = 0, limit: int = 1000, grades: str = None, areas: str
                 )
                 .exists()
             )
+    
+    # Filter by first ascensionist
+    if first_ascensionist:
+        query = query.filter(models.Climb.first_ascensionist == first_ascensionist)
 
     climbs = query.offset(skip).limit(limit).all()
 
@@ -238,6 +264,7 @@ def read_climbs(skip: int = 0, limit: int = 1000, grades: str = None, areas: str
             climb.first_ascent_date = climb.first_ascent_date.isoformat()
 
     return climbs
+
 
 @app.get("/climbs/{id}", response_model=schemas.Climb)
 def read_climb(id: int, db: Session = Depends(get_db)):

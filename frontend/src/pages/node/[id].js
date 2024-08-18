@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/router';
 import dynamic from 'next/dynamic';
+import Link from 'next/link';
 
 const LeafletMap = dynamic(() => import('../../components/leaflet_map'), { ssr: false });
 
@@ -9,7 +10,8 @@ const ClimbDetail = ({ climb }) => {
   const router = useRouter();
   const [isOnTicklist, setIsOnTicklist] = useState(false);
   const [isOnHitlist, setIsOnHitlist] = useState(false);
-  const [logs, setLogs] = useState([]); // State to store logs
+  const [logs, setLogs] = useState([]); 
+  const [users, setUsers] = useState({});
 
   const {
     id,
@@ -31,7 +33,6 @@ const ClimbDetail = ({ climb }) => {
       try {
         const token = localStorage.getItem('token');
 
-        // Check Ticklist
         const ticklistResponse = await axios.get('http://localhost:8000/ticklist/', {
           headers: {
             Authorization: `Bearer ${token}`
@@ -40,7 +41,6 @@ const ClimbDetail = ({ climb }) => {
         const ticklist = ticklistResponse.data;
         setIsOnTicklist(ticklist.some(item => item.id === climb.id));
 
-        // Check Hitlist
         const hitlistResponse = await axios.get('http://localhost:8000/hitlist/', {
           headers: {
             Authorization: `Bearer ${token}`
@@ -49,9 +49,15 @@ const ClimbDetail = ({ climb }) => {
         const hitlist = hitlistResponse.data;
         setIsOnHitlist(hitlist.some(item => item.id === climb.id));
 
-        // Fetch logs for the climb
         const logsResponse = await axios.get(`http://localhost:8000/climbs/${id}/logs`);
         setLogs(logsResponse.data);
+
+        const usersResponse = await axios.get('http://localhost:8000/users/');
+        const usersData = usersResponse.data.reduce((acc, user) => {
+          acc[user.username] = user.id;
+          return acc;
+        }, {});
+        setUsers(usersData);
       } catch (error) {
         console.error('Error checking lists or fetching logs:', error);
       }
@@ -77,10 +83,8 @@ const ClimbDetail = ({ climb }) => {
       );
   
       if (!isRemoving) {
-        // If the climb is being added to the ticklist, redirect to the logging page
         router.push(`/log/${climb.id}`);
       } else {
-        // If the climb is being removed from the ticklist, remove the associated log
         const logResponse = await axios.post(
           'http://localhost:8000/logs/remove',
           { climb_id: climb.id },
@@ -91,15 +95,9 @@ const ClimbDetail = ({ climb }) => {
           }
         );
   
-        console.log('Log removed:', logResponse.data);
-  
-        // Update the state to reflect that the climb has been removed from the ticklist
         setIsOnTicklist(false);
-        // Also remove the log from the displayed logs
         setLogs(logs.filter(log => log.climb_id !== climb.id));
       }
-  
-      console.log(`Climb ${isRemoving ? 'removed from' : 'added to'} ticklist:`, response.data);
     } catch (error) {
       console.error(`Error ${isOnTicklist ? 'removing' : 'adding'} climb from/to ticklist:`, error);
     }
@@ -119,7 +117,6 @@ const ClimbDetail = ({ climb }) => {
         }
       );
       setIsOnHitlist(!isOnHitlist);
-      console.log(`Climb ${isOnHitlist ? 'removed from' : 'added to'} hitlist:`, response.data);
     } catch (error) {
       console.error(`Error ${isOnHitlist ? 'removing' : 'adding'} climb from/to hitlist:`, error);
     }
@@ -135,7 +132,15 @@ const ClimbDetail = ({ climb }) => {
         <h1 style={styles.title}>{name}</h1>
         <h2 style={styles.area}>{area}</h2>
         <p style={styles.grade}>Grade: {grade}{stars}</p>
-        <p style={styles.firstAscensionist}>First Ascensionist: {first_ascensionist}</p>
+        <p style={styles.firstAscensionist}>
+          First Ascensionist: {users[first_ascensionist] ? (
+            <Link href={`/profile/${users[first_ascensionist]}`} legacyBehavior>
+              <a style={styles.link}>{first_ascensionist}</a>
+            </Link>
+          ) : (
+            first_ascensionist
+          )}
+        </p>
         <p style={styles.firstAscentDate}>First Ascent Date: {new Date(first_ascent_date).toLocaleDateString('en-GB')}</p>
         <p style={styles.description}>{description || '\n'}</p>
 
@@ -167,7 +172,11 @@ const ClimbDetail = ({ climb }) => {
               <tbody>
                 {logs.map((log, index) => (
                   <tr key={index}>
-                    <td style={styles.tableCell}>{log.username}</td>
+                    <td style={styles.tableCell}>
+                      <Link href={`/profile/${log.user_id}`} legacyBehavior>
+                        <a style={styles.link}>{log.username}</a>
+                      </Link>
+                    </td>
                     <td style={styles.tableCell}>{log.grade}</td>
                     <td style={styles.tableCell}>{new Date(log.date).toLocaleDateString('en-GB')}</td>
                     <td style={styles.tableCell}>{log.comment || 'No comment'}</td>
@@ -194,7 +203,6 @@ export async function getServerSideProps(context) {
       },
     };
   } catch (error) {
-    console.error('Error fetching climb:', error.response ? error.response.data : error.message);
     return {
       notFound: true,
     };
@@ -213,55 +221,55 @@ const styles = {
     flexDirection: 'column',
     alignItems: 'center',
     padding: '20px',
-    paddingBottom: '60px', // Ensure there's space for the footer
-    maxWidth: '75vw', // Ensure content doesn't exceed 75% of the screen width
+    paddingBottom: '60px', 
+    maxWidth: '75vw', 
     margin: '0 auto',
   },
   title: {
     fontSize: '3rem',
     fontWeight: 'bold',
     marginBottom: '20px',
-    textAlign: 'center', // Center the text
+    textAlign: 'center', 
   },
   area: {
     fontSize: '2rem',
     marginBottom: '10px',
-    textAlign: 'center', // Center the text
+    textAlign: 'center', 
   },
   grade: {
     fontSize: '1.5rem',
     marginBottom: '10px',
-    textAlign: 'center', // Center the text
+    textAlign: 'center', 
   },
   firstAscensionist: {
     fontSize: '1.5rem',
     fontWeight: 'bold',
     marginBottom: '10px',
-    textAlign: 'center', // Center the text
+    textAlign: 'center', 
   },
   firstAscentDate: {
     fontSize: '1.5rem',
     fontWeight: 'bold',
     marginBottom: '20px',
-    textAlign: 'center', // Center the text
+    textAlign: 'center', 
   },
   description: {
     fontSize: '1.2rem',
     marginBottom: '20px',
     textAlign: 'justify',
-    whiteSpace: 'pre-wrap', // Ensure new lines are displayed
+    whiteSpace: 'pre-wrap', 
   },
   mapContainer: {
-    width: '75vw', // Set the width to 75% of the viewport width
+    width: '75vw', 
     height: '400px',
     display: 'flex',
     justifyContent: 'center',
-    marginBottom: '100px', // Ensure the map doesn't overlap with the footer
+    marginBottom: '100px', 
   },
   buttonContainer: {
     display: 'flex',
     justifyContent: 'space-between',
-    width: '50%', // Adjust this as needed
+    width: '50%', 
     marginTop: '20px',
     marginBottom: '40px',
   },
@@ -272,7 +280,7 @@ const styles = {
     borderRadius: '5px',
     border: 'none',
     cursor: 'pointer',
-    flex: 1, // Make buttons share available space
+    flex: 1, 
     marginLeft: '10px',
     marginRight: '10px',
   },

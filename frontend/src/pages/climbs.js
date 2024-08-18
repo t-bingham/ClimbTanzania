@@ -9,7 +9,8 @@ import * as wellknown from 'wellknown';
 const Climbs = ({ initialClimbs }) => {
   const [climbs, setClimbs] = useState(initialClimbs);
   const [areas, setAreas] = useState([]);
-  const [hitlistClimbs, setHitlistClimbs] = useState([]); // State to store hitlist climbs
+  const [hitlistClimbs, setHitlistClimbs] = useState([]); 
+  const [users, setUsers] = useState({});
 
   useEffect(() => {
     const fetchAreas = async () => {
@@ -19,10 +20,10 @@ const Climbs = ({ initialClimbs }) => {
           .filter(area => area.polygon)
           .map(area => {
             const parsed = wellknown.parse(area.polygon);
-            const invertedCoordinates = parsed.coordinates[0].map(coord => [coord[1], coord[0]]); // Invert lat/lng
+            const invertedCoordinates = parsed.coordinates[0].map(coord => [coord[1], coord[0]]); 
             return {
               ...area,
-              path: invertedCoordinates, // Use inverted coordinates
+              path: invertedCoordinates,
             };
           });
         setAreas(parsedAreas);
@@ -39,14 +40,28 @@ const Climbs = ({ initialClimbs }) => {
             Authorization: `Bearer ${token}`
           }
         });
-        setHitlistClimbs(response.data.map(climb => climb.id)); // Store hitlist climb IDs
+        setHitlistClimbs(response.data.map(climb => climb.id)); 
       } catch (error) {
         console.error('Error fetching hitlist:', error);
       }
     };
 
+    const fetchUsers = async () => {
+      try {
+        const response = await axios.get('http://localhost:8000/users/');
+        const usersData = response.data.reduce((acc, user) => {
+          acc[user.username] = user.id;
+          return acc;
+        }, {});
+        setUsers(usersData);
+      } catch (error) {
+        console.error('Error fetching users:', error);
+      }
+    };
+
     fetchAreas();
     fetchHitlist();
+    fetchUsers();
   }, []);
 
   const applyFilters = async (selectedGrades, selectedAreas) => {
@@ -96,7 +111,7 @@ const Climbs = ({ initialClimbs }) => {
             'V0-', 'V0', 'V0+', 'V1', 'V2', 'V3', 'V4', 'V5', 'V6', 'V7', 'V8', 'V9', 'V10', 'V11', 'V12', 'V13', 'V14', 'V15', 'V16', 'V17',
             '4', '5a', '5b', '5c', '6a', '6a+', '6b', '6b+', '6c', '6c+', '7a', '7a+', '7b', '7b+', '7c', '7c+', '8a', '8a+', '8b', '8b+', '8c', '8c+', '9a', '9a+', '9b', '9b+', '9c'
           ]}
-          areas={[...areas, { name: 'Independent Climbs', id: 'independent', path: [], color: 'red' }]}  // Pass areas
+          areas={[...areas, { name: 'Independent Climbs', id: 'independent', path: [], color: 'red' }]} 
           onApply={applyFilters}
         />
         <div className={styles.tableContainer}>
@@ -108,8 +123,8 @@ const Climbs = ({ initialClimbs }) => {
                 <th className={styles.wideColumn}>Area</th>
                 <th className={styles.wideColumn}>First Ascensionist</th>
                 <th className={styles.narrowColumn}>First Ascent Year</th>
-                <th className={styles.narrowColumn}>Type</th> {/* New column */}
-                <th className={styles.narrowColumn}>Hitlist</th> {/* New column for hitlist button */}
+                <th className={styles.narrowColumn}>Type</th> 
+                <th className={styles.narrowColumn}>Hitlist</th> 
               </tr>
             </thead>
             <tbody>
@@ -122,11 +137,19 @@ const Climbs = ({ initialClimbs }) => {
                   </td>
                   <td className={styles.narrowColumn}>{climb.grade || 'N/A'}</td>
                   <td className={styles.wideColumn}>{climb.area || 'N/A'}</td>
-                  <td className={styles.wideColumn}>{climb.first_ascensionist || 'N/A'}</td>
+                  <td className={styles.wideColumn}>
+                    {users[climb.first_ascensionist] ? (
+                      <Link href={`/profile/${users[climb.first_ascensionist]}`} legacyBehavior>
+                        <a className={styles.link}>{climb.first_ascensionist}</a>
+                      </Link>
+                    ) : (
+                      climb.first_ascensionist || 'N/A'
+                    )}
+                  </td>
                   <td className={styles.narrowColumn}>
                     {climb.first_ascent_date ? new Date(climb.first_ascent_date).getFullYear() : 'N/A'}
                   </td>
-                  <td className={styles.wideColumn}>{climb.type || 'N/A'}</td> {/* New column */}
+                  <td className={styles.wideColumn}>{climb.type || 'N/A'}</td> 
                   <td className={styles.narrowColumn}>
                     <button
                       onClick={() => toggleHitlist(climb.id)}
