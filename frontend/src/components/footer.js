@@ -10,6 +10,9 @@ const Footer = () => {
         <Link href="/info" legacyBehavior>
           <a style={styles.navLink}>Info</a>
         </Link>
+        <Link href="/access_and_ethics" legacyBehavior>
+          <a style={styles.navLink}>Access and Ethics</a>
+        </Link>
         <Link href="/about_us" legacyBehavior>
           <a style={styles.navLink}>About Us</a>
         </Link>

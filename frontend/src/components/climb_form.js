@@ -225,6 +225,9 @@ const ClimbForm = ({ pinCoordinates, updatePinCoordinates }) => {
             <option key={star} value={star}>{`${star} Star${star !== 1 ? 's' : ''}`}</option>
           ))}
         </select>
+        <p>
+          The star-rating system we use is based on an objective system brought to us by Brian Capps. Climbs are given stars based on these criteria: Presence and purity of line, Obvious start, Sharpness / rock quality, Landing, History, Location. Most climbs in the world would be 0 - 2 stars. Only the best of the best are 4 stars, and 5 stars is reserved for the (theoretical) perfect problem, one that is flawless. A three-star problem is worth spending a year training for and travelling overseas to send. Anything higher is an absolute must-do. This is not to in any way demerit low or zero-star problems but to help us objectively rate problems without too much hype.
+        </p>
       </div>
       <div>
         <label style={requiredLabelStyle}><span style={requiredStarStyle}>*</span> First Ascensionist:</label>
@@ -255,6 +258,9 @@ const ClimbForm = ({ pinCoordinates, updatePinCoordinates }) => {
         <label style={labelStyle}>Description:</label>
         <textarea name="description" value={formData.description} onChange={handleChange} style={inputStyle}></textarea>
       </div>
+      <p>
+        Add any links to media in the description. Maybe one day I'll add media support!
+      </p>
       <div>
         <label style={labelStyle}>Tags:</label>
         <input type="text" name="tags" value={formData.tags} onChange={handleChange} style={inputStyle} />

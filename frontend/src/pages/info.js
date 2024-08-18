@@ -31,7 +31,6 @@ export const getStaticProps = async () => {
   const sectionFiles = {
     geological_info: '1. Rock Type and Formation on the East Coast of Lake Victoria, Tanzania',
     getting_there_info: '2. Getting to Lake Victoria, Travelling Tanzania',
-    access_and_ethics_info: '3. Access and Ethics',
   };
   const content = {};
 
