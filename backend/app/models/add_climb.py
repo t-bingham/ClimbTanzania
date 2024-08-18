@@ -1,7 +1,7 @@
 # ClimbTanzania/backend/app/models/add_climb.py
 from sqlalchemy import Column, Integer, String, Float, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, validates
 from geoalchemy2 import Geometry
 
 Base = declarative_base()
@@ -23,6 +23,13 @@ class Climb(Base):
     logs = relationship("Log", back_populates="climb")
     ticklists = relationship("Ticklist", back_populates="climb")
     hitlists = relationship("Hitlist", back_populates="climb")
+
+    @validates('tags')
+    def convert_tags_to_uppercase(self, key, value):
+        if value:
+            # Normalize the tags to uppercase
+            return ",".join([tag.strip().upper() for tag in value.split(",")])
+        return value
 
 class Area(Base):
     __tablename__ = 'areas'

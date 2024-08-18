@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, field_validator
 from typing import Optional, List
 
 # Climb Base Model
@@ -14,6 +14,12 @@ class ClimbBase(BaseModel):
     description: Optional[str] = None
     tags: Optional[str] = None
     area: Optional[str] = None
+
+    @field_validator('tags', pre=True, always=True)
+    def convert_tags_to_uppercase(cls, v):
+        if v:
+            return ",".join([tag.strip().upper() for tag in v.split(",")])
+        return v
 
 # Climb Create Model
 class ClimbCreate(ClimbBase):
