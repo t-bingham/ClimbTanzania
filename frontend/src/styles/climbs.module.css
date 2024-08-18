@@ -27,6 +27,7 @@
 .table {
   width: 100%;
   border-collapse: collapse;
+  margin-bottom: 30px;
 }
 
 .table th, .table td {
@@ -88,4 +89,20 @@
 .tabs button.activeTab {
   background-color: black;
   color: white;
+}
+
+.centeredText {
+  text-align: center;
+  margin-bottom: 20px;
+  line-height: 1.6;
+  font-size: 18px;
+  margin-top: 20px;
+  margin-bottom: 10px;
+}
+
+.centeredSectionTitle {
+  text-align: center;
+  font-weight: bold;
+  font-size: 24px;
+  margin-bottom: 10px;
 }

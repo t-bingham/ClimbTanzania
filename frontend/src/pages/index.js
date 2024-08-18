@@ -46,11 +46,11 @@ function Home() {
     <div className={styles.container}>
       <div className={styles.content}>
         <h1 className={styles.title}>Welcome to ClimbTanzania!</h1>
-        <p className={styles.textBlock}>This is the homepage of ClimbTanzania.</p>
+        <p className={styles.centeredText}>This is the homepage of ClimbTanzania.</p>
 
         {/* Recent Ticks */}
         <div className={styles.section}>
-          <h2 className={styles.sectionTitle}>Recent Ticks</h2>
+          <h2 className={styles.centeredSectionTitle}>Recent Ticks</h2>
           <div className={styles.tableContainer}>
             <table className={styles.table}>
               <thead>
@@ -87,7 +87,7 @@ function Home() {
 
         {/* Recent First Ascents */}
         <div className={styles.section}>
-          <h2 className={styles.sectionTitle}>Recent First Ascents</h2>
+          <h2 className={styles.centeredSectionTitle}>Recent First Ascents</h2>
           <div className={styles.tableContainer}>
             <table className={styles.table}>
               <thead>
@@ -124,7 +124,7 @@ function Home() {
 
         {/* Recent Big Ticks */}
         <div className={styles.section}>
-          <h2 className={styles.sectionTitle}>Recent Big Ticks</h2>
+          <h2 className={styles.centeredSectionTitle}>Recent Big Ticks</h2>
           <div className={styles.tableContainer}>
             <table className={styles.table}>
               <thead>
