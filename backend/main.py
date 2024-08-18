@@ -219,7 +219,7 @@ def create_climb(climb: schemas.ClimbCreate, db: Session = Depends(get_db)):
 
 
 @app.get("/climbs/", response_model=List[schemas.Climb])
-def read_climbs(skip: int = 0, limit: int = 1000, grades: str = None, areas: str = None, type: str = None, first_ascensionist: str = None, db: Session = Depends(get_db)):
+def read_climbs(skip: int = 0, limit: int = 25, grades: str = None, areas: str = None, type: str = None, first_ascensionist: str = None, db: Session = Depends(get_db)):
     query = db.query(models.Climb)
 
     # Filter by type (e.g., Boulder)
@@ -258,8 +258,10 @@ def read_climbs(skip: int = 0, limit: int = 1000, grades: str = None, areas: str
     if first_ascensionist:
         query = query.filter(models.Climb.first_ascensionist == first_ascensionist)
 
+    # Apply pagination
     climbs = query.offset(skip).limit(limit).all()
 
+    # Convert date fields to strings
     for climb in climbs:
         if climb.first_ascent_date:
             climb.first_ascent_date = climb.first_ascent_date.isoformat()

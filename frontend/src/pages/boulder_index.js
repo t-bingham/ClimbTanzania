@@ -6,11 +6,13 @@ import styles from '../styles/climbs.module.css';
 import withAuth from '../hoc/withAuth';
 import * as wellknown from 'wellknown';
 
-const BoulderIndex = ({ initialClimbs }) => {
+const BoulderIndex = ({ initialClimbs, initialPage }) => {
   const [climbs, setClimbs] = useState(initialClimbs);
+  const [page, setPage] = useState(initialPage);
   const [areas, setAreas] = useState([]);
   const [hitlistClimbs, setHitlistClimbs] = useState([]);
   const [users, setUsers] = useState([]);
+  const [hasMore, setHasMore] = useState(initialClimbs.length === 25);
 
   useEffect(() => {
     const fetchAreas = async () => {
@@ -67,9 +69,13 @@ const BoulderIndex = ({ initialClimbs }) => {
           type: 'Boulder',
           grades: selectedGrades.join(','),
           areas: selectedAreas.join(','),
+          skip: 0,
+          limit: 25,
         }
       });
       setClimbs(response.data);
+      setPage(1);
+      setHasMore(response.data.length === 25);
     } catch (error) {
       console.error('Error fetching filtered climbs:', error);
     }
@@ -105,6 +111,23 @@ const BoulderIndex = ({ initialClimbs }) => {
       return <Link href={`/profile/${user.id}`} legacyBehavior><a className={styles.link}>{firstAscensionist}</a></Link>;
     }
     return firstAscensionist;
+  };
+
+  const loadPage = async (newPage) => {
+    try {
+      const response = await axios.get('http://localhost:8000/climbs/', {
+        params: {
+          type: 'Boulder',
+          skip: (newPage - 1) * 25,
+          limit: 25,
+        }
+      });
+      setClimbs(response.data);
+      setPage(newPage);
+      setHasMore(response.data.length === 25);
+    } catch (error) {
+      console.error('Error loading page:', error);
+    }
   };
 
   return (
@@ -159,6 +182,24 @@ const BoulderIndex = ({ initialClimbs }) => {
             </tbody>
           </table>
         </div>
+        <div className={styles.pagination}>
+        {page > 1 && (
+          <button
+            onClick={() => loadPage(page - 1)}
+            style={{ ...styles.paginationButton, marginRight: '10px' }}  // Add margin-right to the previous button
+          >
+            Previous Page
+          </button>
+        )}
+        {hasMore && (
+          <button
+            onClick={() => loadPage(page + 1)}
+            style={styles.paginationButton}
+          >
+            Next Page
+          </button>
+        )}
+      </div>
       </div>
     </div>
   );
@@ -168,13 +209,15 @@ export async function getServerSideProps() {
   try {
     const response = await axios.get('http://localhost:8000/climbs/', {
       params: {
-        type: 'Boulder'
+        type: 'Boulder',
+        skip: 0,
+        limit: 25,
       }
     });
-    console.log(response.data);
     return {
       props: {
         initialClimbs: response.data,
+        initialPage: 1,
       },
     };
   } catch (error) {
@@ -182,6 +225,7 @@ export async function getServerSideProps() {
     return {
       props: {
         initialClimbs: [],
+        initialPage: 1,
       },
     };
   }

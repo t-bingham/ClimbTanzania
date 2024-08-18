@@ -15,7 +15,7 @@ class ClimbBase(BaseModel):
     tags: Optional[str] = None
     area: Optional[str] = None
 
-    @field_validator('tags', pre=True, always=True)
+    @field_validator('tags', mode='before')
     def convert_tags_to_uppercase(cls, v):
         if v:
             return ",".join([tag.strip().upper() for tag in v.split(",")])

@@ -6,11 +6,13 @@ import styles from '../styles/climbs.module.css';
 import withAuth from '../hoc/withAuth';
 import * as wellknown from 'wellknown';
 
-const TradIndex = ({ initialClimbs }) => {
+const TradIndex = ({ initialClimbs, initialPage }) => {
   const [climbs, setClimbs] = useState(initialClimbs);
+  const [page, setPage] = useState(initialPage);
   const [areas, setAreas] = useState([]);
   const [hitlistClimbs, setHitlistClimbs] = useState([]);
-  const [users, setUsers] = useState([]);
+  const [users, setUsers] = useState({});
+  const [hasMore, setHasMore] = useState(initialClimbs.length === 25);
 
   useEffect(() => {
     const fetchAreas = async () => {
@@ -49,7 +51,11 @@ const TradIndex = ({ initialClimbs }) => {
     const fetchUsers = async () => {
       try {
         const response = await axios.get('http://localhost:8000/users/');
-        setUsers(response.data);
+        const usersData = response.data.reduce((acc, user) => {
+          acc[user.username] = user.id;
+          return acc;
+        }, {});
+        setUsers(usersData);
       } catch (error) {
         console.error('Error fetching users:', error);
       }
@@ -67,9 +73,13 @@ const TradIndex = ({ initialClimbs }) => {
           type: 'Trad',
           grades: selectedGrades.join(','),
           areas: selectedAreas.join(','),
+          skip: 0,
+          limit: 25,
         }
       });
       setClimbs(response.data);
+      setPage(1);
+      setHasMore(response.data.length === 25);
     } catch (error) {
       console.error('Error fetching filtered climbs:', error);
     }
@@ -99,28 +109,31 @@ const TradIndex = ({ initialClimbs }) => {
     }
   };
 
-  const getFirstAscensionistLink = (firstAscensionist) => {
-    const user = users.find(u => u.username === firstAscensionist);
-    if (user) {
-      return (
-        <Link href={`/profile/${user.id}`} legacyBehavior>
-          <a className={styles.link}>{firstAscensionist}</a>
-        </Link>
-      );
+  const loadPage = async (newPage) => {
+    try {
+      const response = await axios.get('http://localhost:8000/climbs/', {
+        params: {
+          type: 'Trad',
+          skip: (newPage - 1) * 25,
+          limit: 25,
+        }
+      });
+      setClimbs(response.data);
+      setPage(newPage);
+      setHasMore(response.data.length === 25);
+    } catch (error) {
+      console.error('Error loading page:', error);
     }
-    return firstAscensionist;
   };
-
-  const leadGrades = [
-    '4', '5a', '5b', '5c', '6a', '6a+', '6b', '6b+', '6c', '6c+', '7a', '7a+', '7b', '7b+', '7c', '7c+', '8a', '8a+', '8b', '8b+', '8c', '8c+', '9a', '9a+', '9b', '9b+', '9c'
-  ];
 
   return (
     <div className={styles.container}>
       <div className={styles.content}>
         <h1 className={styles.title}>Trad Index</h1>
         <MapFilters
-          grades={leadGrades}
+          grades={[
+            '4', '5a', '5b', '5c', '6a', '6a+', '6b', '6b+', '6c', '6c+', '7a', '7a+', '7b', '7b+', '7c', '7c+', '8a', '8a+', '8b', '8b+', '8c', '8c+', '9a', '9a+', '9b', '9b+', '9c'
+          ]}
           areas={[...areas, { name: 'Independent Climbs', id: 'independent', path: [], color: 'red' }]}
           onApply={applyFilters}
         />
@@ -147,7 +160,13 @@ const TradIndex = ({ initialClimbs }) => {
                   <td className={styles.narrowColumn}>{climb.grade || 'N/A'}</td>
                   <td className={styles.wideColumn}>{climb.area || 'N/A'}</td>
                   <td className={styles.wideColumn}>
-                    {getFirstAscensionistLink(climb.first_ascensionist)}
+                    {users[climb.first_ascensionist] ? (
+                      <Link href={`/profile/${users[climb.first_ascensionist]}`} legacyBehavior>
+                        <a className={styles.link}>{climb.first_ascensionist}</a>
+                      </Link>
+                    ) : (
+                      climb.first_ascensionist || 'N/A'
+                    )}
                   </td>
                   <td className={styles.narrowColumn}>
                     {climb.first_ascent_date ? new Date(climb.first_ascent_date).getFullYear() : 'N/A'}
@@ -165,6 +184,24 @@ const TradIndex = ({ initialClimbs }) => {
             </tbody>
           </table>
         </div>
+        <div className={styles.pagination}>
+        {page > 1 && (
+          <button
+            onClick={() => loadPage(page - 1)}
+            style={{ ...styles.paginationButton, marginRight: '10px' }}  // Add margin-right to the previous button
+          >
+            Previous Page
+          </button>
+        )}
+        {hasMore && (
+          <button
+            onClick={() => loadPage(page + 1)}
+            style={styles.paginationButton}
+          >
+            Next Page
+          </button>
+        )}
+      </div>
       </div>
     </div>
   );
@@ -174,12 +211,15 @@ export async function getServerSideProps() {
   try {
     const response = await axios.get('http://localhost:8000/climbs/', {
       params: {
-        type: 'Trad'
+        type: 'Trad',
+        skip: 0,
+        limit: 25,
       }
     });
     return {
       props: {
         initialClimbs: response.data,
+        initialPage: 1,
       },
     };
   } catch (error) {
@@ -187,6 +227,7 @@ export async function getServerSideProps() {
     return {
       props: {
         initialClimbs: [],
+        initialPage: 1,
       },
     };
   }

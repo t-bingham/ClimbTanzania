@@ -6,11 +6,13 @@ import styles from '../styles/climbs.module.css';
 import withAuth from '../hoc/withAuth';
 import * as wellknown from 'wellknown';
 
-const SportIndex = ({ initialClimbs }) => {
+const SportIndex = ({ initialClimbs, initialPage }) => {
   const [climbs, setClimbs] = useState(initialClimbs);
+  const [page, setPage] = useState(initialPage);
   const [areas, setAreas] = useState([]);
-  const [hitlistClimbs, setHitlistClimbs] = useState([]); 
+  const [hitlistClimbs, setHitlistClimbs] = useState([]);
   const [users, setUsers] = useState({});
+  const [hasMore, setHasMore] = useState(initialClimbs.length === 25);
 
   useEffect(() => {
     const fetchAreas = async () => {
@@ -20,7 +22,7 @@ const SportIndex = ({ initialClimbs }) => {
           .filter(area => area.polygon)
           .map(area => {
             const parsed = wellknown.parse(area.polygon);
-            const invertedCoordinates = parsed.coordinates[0].map(coord => [coord[1], coord[0]]); 
+            const invertedCoordinates = parsed.coordinates[0].map(coord => [coord[1], coord[0]]);
             return {
               ...area,
               path: invertedCoordinates,
@@ -40,7 +42,7 @@ const SportIndex = ({ initialClimbs }) => {
             Authorization: `Bearer ${token}`
           }
         });
-        setHitlistClimbs(response.data.map(climb => climb.id)); 
+        setHitlistClimbs(response.data.map(climb => climb.id));
       } catch (error) {
         console.error('Error fetching hitlist:', error);
       }
@@ -68,12 +70,16 @@ const SportIndex = ({ initialClimbs }) => {
     try {
       const response = await axios.get('http://localhost:8000/climbs/', {
         params: {
-          type: 'Sport', 
+          type: 'Sport',
           grades: selectedGrades.join(','),
           areas: selectedAreas.join(','),
+          skip: 0,
+          limit: 25,
         }
       });
       setClimbs(response.data);
+      setPage(1);
+      setHasMore(response.data.length === 25);
     } catch (error) {
       console.error('Error fetching filtered climbs:', error);
     }
@@ -103,16 +109,31 @@ const SportIndex = ({ initialClimbs }) => {
     }
   };
 
-  const leadGrades = [
-    '4', '5a', '5b', '5c', '6a', '6a+', '6b', '6b+', '6c', '6c+', '7a', '7a+', '7b', '7b+', '7c', '7c+', '8a', '8a+', '8b', '8b+', '8c', '8c+', '9a', '9a+', '9b', '9b+', '9c'
-  ];
+  const loadPage = async (newPage) => {
+    try {
+      const response = await axios.get('http://localhost:8000/climbs/', {
+        params: {
+          type: 'Sport',
+          skip: (newPage - 1) * 25,
+          limit: 25,
+        }
+      });
+      setClimbs(response.data);
+      setPage(newPage);
+      setHasMore(response.data.length === 25);
+    } catch (error) {
+      console.error('Error loading page:', error);
+    }
+  };
 
   return (
     <div className={styles.container}>
       <div className={styles.content}>
         <h1 className={styles.title}>Sport Index</h1>
         <MapFilters
-          grades={leadGrades} 
+          grades={[
+            '4', '5a', '5b', '5c', '6a', '6a+', '6b', '6b+', '6c', '6c+', '7a', '7a+', '7b', '7b+', '7c', '7c+', '8a', '8a+', '8b', '8b+', '8c', '8c+', '9a', '9a+', '9b', '9b+', '9c'
+          ]}
           areas={[...areas, { name: 'Independent Climbs', id: 'independent', path: [], color: 'red' }]}
           onApply={applyFilters}
         />
@@ -125,7 +146,7 @@ const SportIndex = ({ initialClimbs }) => {
                 <th className={styles.wideColumn}>Area</th>
                 <th className={styles.wideColumn}>First Ascensionist</th>
                 <th className={styles.narrowColumn}>First Ascent Year</th>
-                <th className={styles.narrowColumn}>Hitlist</th> 
+                <th className={styles.narrowColumn}>Hitlist</th>
               </tr>
             </thead>
             <tbody>
@@ -163,6 +184,24 @@ const SportIndex = ({ initialClimbs }) => {
             </tbody>
           </table>
         </div>
+        <div className={styles.pagination}>
+        {page > 1 && (
+          <button
+            onClick={() => loadPage(page - 1)}
+            style={{ ...styles.paginationButton, marginRight: '10px' }}  // Add margin-right to the previous button
+          >
+            Previous Page
+          </button>
+        )}
+        {hasMore && (
+          <button
+            onClick={() => loadPage(page + 1)}
+            style={styles.paginationButton}
+          >
+            Next Page
+          </button>
+        )}
+      </div>
       </div>
     </div>
   );
@@ -172,12 +211,15 @@ export async function getServerSideProps() {
   try {
     const response = await axios.get('http://localhost:8000/climbs/', {
       params: {
-        type: 'Sport'
+        type: 'Sport',
+        skip: 0,
+        limit: 25,
       }
     });
     return {
       props: {
         initialClimbs: response.data,
+        initialPage: 1,
       },
     };
   } catch (error) {
@@ -185,6 +227,7 @@ export async function getServerSideProps() {
     return {
       props: {
         initialClimbs: [],
+        initialPage: 1,
       },
     };
   }
