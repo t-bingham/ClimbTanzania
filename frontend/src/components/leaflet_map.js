@@ -10,7 +10,8 @@ const LeafletMap = ({
   setPinCoordinates, 
   initialPosition, 
   isEditable = true, 
-  polygons = []  // Add polygons as a prop
+  polygons = [],  // Add polygons as a prop
+  externalPosition // New prop for position update
 }) => {
   const [position, setPosition] = useState(initialPosition || null);
   const markerRef = useRef(null);
@@ -102,6 +103,20 @@ const LeafletMap = ({
     return null;
   };
 
+  const UpdatePinPosition = () => {
+    const map = useMap();
+
+    useEffect(() => {
+      if (externalPosition && (externalPosition.lat !== position?.lat || externalPosition.lng !== position?.lng)) {
+        setPosition(externalPosition);
+        setPinCoordinates(externalPosition);
+        map.setView([externalPosition.lat, externalPosition.lng], map.getZoom());
+      }
+    }, [externalPosition, map]);
+
+    return null;
+  };
+
   return (
     <MapContainer center={position || [-2.031246, 33.496643]} zoom={8} style={{ height: '500px', width: '100%' }}>
       <TileLayer
@@ -113,6 +128,7 @@ const LeafletMap = ({
         <Polygon key={index} positions={polygon.path} color="black" />
       ))}
       <LocationMarker />
+      <UpdatePinPosition />
       {isEditable && <PinControl />}
     </MapContainer>
   );

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/router';
 
-const ClimbForm = ({ pinCoordinates }) => {
+const ClimbForm = ({ pinCoordinates, updatePinCoordinates }) => {
   const router = useRouter();
   const [formData, setFormData] = useState({
     latitude: '',
@@ -17,16 +17,35 @@ const ClimbForm = ({ pinCoordinates }) => {
     tags: '',
   });
 
+  const [isConfirmed, setIsConfirmed] = useState(false);
+  const [isFormValid, setIsFormValid] = useState(false);
+
   useEffect(() => {
     if (pinCoordinates) {
-        setFormData({
-            ...formData,
-            latitude: pinCoordinates.lat.toFixed(8),
-            longitude: pinCoordinates.lng.toFixed(8),
-            first_ascent_date: formData.first_ascent_date // Should be in ISO format string
-        });
+      setFormData({
+        ...formData,
+        latitude: pinCoordinates.lat.toFixed(8),
+        longitude: pinCoordinates.lng.toFixed(8),
+        first_ascent_date: formData.first_ascent_date, // Should be in ISO format string
+      });
+      setIsConfirmed(true); // Automatically confirm when pin is dropped
     }
-}, [pinCoordinates]);
+  }, [pinCoordinates]);
+
+  useEffect(() => {
+    // Check if all required fields are filled out and coordinates are confirmed
+    const requiredFields = [
+      formData.latitude,
+      formData.longitude,
+      formData.name,
+      formData.type,
+      formData.grade,
+      formData.quality,
+      formData.first_ascensionist,
+      formData.first_ascent_date,
+    ];
+    setIsFormValid(requiredFields.every((field) => field !== '') && isConfirmed);
+  }, [formData, isConfirmed]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -39,8 +58,8 @@ const ClimbForm = ({ pinCoordinates }) => {
     try {
       const response = await axios.post('http://localhost:8000/climbs/', formData, {
         headers: {
-          'Content-Type': 'application/json'
-        }
+          'Content-Type': 'application/json',
+        },
       });
       console.log('Climb added successfully:', response.data);
       // Redirect to the new climb's page
@@ -50,10 +69,23 @@ const ClimbForm = ({ pinCoordinates }) => {
     }
   };
 
+  const handleConfirmCoordinates = () => {
+    const lat = parseFloat(formData.latitude);
+    const lng = parseFloat(formData.longitude);
+    if (!isNaN(lat) && !isNaN(lng)) {
+      updatePinCoordinates({ lat, lng });
+      setIsConfirmed(true);
+    }
+  };
+
+  const handleEditCoordinates = () => {
+    setIsConfirmed(false);
+  };
+
   const gradeOptions = {
     Boulder: ['V0-', 'V0', 'V1', 'V2', 'V3', 'V4', 'V5', 'V6', 'V7', 'V8', 'V9', 'V10', 'V11', 'V12', 'V13', 'V14', 'V15', 'V16', 'V17'],
     Sport: ['4', '5a', '5b', '5c', '6a', '6a+', '6b', '6b+', '6c', '6c+', '7a', '7a+', '7b', '7b+', '7c', '7c+', '8a', '8a+', '8b', '8b+', '8c', '8c+', '9a', '9a+', '9b', '9b+', '9c'],
-    Trad: ['4', '5a', '5b', '5c', '6a', '6a+', '6b', '6b+', '6c', '6c+', '7a', '7a+', '7b', '7b+', '7c', '7c+', '8a', '8a+', '8b', '8b+', '8c', '8c+', '9a', '9a+', '9b', '9b+', '9c']
+    Trad: ['4', '5a', '5b', '5c', '6a', '6a+', '6b', '6b+', '6c', '6c+', '7a', '7a+', '7b', '7b+', '7c', '7c+', '8a', '8a+', '8b', '8b+', '8c', '8c+', '9a', '9a+', '9b', '9b+', '9c'],
   };
 
   const inputStyle = {
@@ -67,16 +99,16 @@ const ClimbForm = ({ pinCoordinates }) => {
   const labelStyle = {
     display: 'block',
     marginTop: '5px',
-    fontWeight: 'bold'
+    fontWeight: 'bold',
   };
 
   const requiredLabelStyle = {
     ...labelStyle,
-    color: 'black'
+    color: 'black',
   };
 
   const requiredStarStyle = {
-    color: 'red'
+    color: 'red',
   };
 
   const buttonStyle = {
@@ -86,19 +118,26 @@ const ClimbForm = ({ pinCoordinates }) => {
     padding: '10px 20px',
     border: 'none',
     cursor: 'pointer',
-    marginTop: '10px'
+    marginTop: '10px',
   };
 
   return (
     <form style={{ marginTop: '20px' }} onSubmit={handleSubmit}>
-      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-        <div style={{ width: '48%' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ width: '45%' }}>
           <label style={labelStyle}>Latitude:</label>
-          <input type="text" name="latitude" value={formData.latitude} readOnly style={inputStyle} />
+          <input type="text" name="latitude" value={formData.latitude} onChange={handleChange} readOnly={isConfirmed} style={inputStyle} />
         </div>
-        <div style={{ width: '48%' }}>
+        <div style={{ width: '45%' }}>
           <label style={labelStyle}>Longitude:</label>
-          <input type="text" name="longitude" value={formData.longitude} readOnly style={inputStyle} />
+          <input type="text" name="longitude" value={formData.longitude} onChange={handleChange} readOnly={isConfirmed} style={inputStyle} />
+        </div>
+        <div style={{ width: '10%' }}>
+          {isConfirmed ? (
+            <button type="button" onClick={handleEditCoordinates} style={buttonStyle}>Edit</button>
+          ) : (
+            <button type="button" onClick={handleConfirmCoordinates} style={buttonStyle}>Confirm</button>
+          )}
         </div>
       </div>
       <div>
@@ -127,10 +166,12 @@ const ClimbForm = ({ pinCoordinates }) => {
       )}
       <div>
         <label style={requiredLabelStyle}><span style={requiredStarStyle}>*</span> Quality:</label>
-        <input type="number" name="quality" value={formData.quality} onChange={handleChange} min="0" max="5" required style={inputStyle} />
-        <p>
-          The star-rating system we use is based on an objective system brought to us by Brian Capps (see article on B3bouldering for explanation of origin). Climbs are given stars based on these criteria: Presence and purity of line, Obvious start, Sharpness / rock quality, Landing, History, Location. Most climbs in the world would be 0 - 2 stars. Only the best of the best are 4 stars, and 5 stars is reserved for the (theoretical) perfect problem, one that is flawless. A three-star problem is worth spending a year training for and travelling overseas to send. Anything higher is an absolute must-do. This is not to in any way demerit low or zero-star problems but to help us objectively rate problems without too much hype.
-        </p>
+        <select name="quality" value={formData.quality} onChange={handleChange} required style={inputStyle}>
+          <option value="">Select Quality</option>
+          {[0, 1, 2, 3, 4, 5].map((star) => (
+            <option key={star} value={star}>{`${star} Star${star !== 1 ? 's' : ''}`}</option>
+          ))}
+        </select>
       </div>
       <div>
         <label style={requiredLabelStyle}><span style={requiredStarStyle}>*</span> First Ascensionist:</label>
@@ -149,7 +190,7 @@ const ClimbForm = ({ pinCoordinates }) => {
         <input type="text" name="tags" value={formData.tags} onChange={handleChange} style={inputStyle} />
         <p>Separate tags by commas</p>
       </div>
-      <button type="submit" style={buttonStyle}>Submit</button>
+      <button type="submit" style={{ ...buttonStyle, display: isFormValid ? 'block' : 'none' }}>Submit</button>
     </form>
   );
 };
