@@ -85,6 +85,28 @@ const ClimbForm = ({ pinCoordinates, updatePinCoordinates }) => {
     setIsConfirmed(false);
   };
 
+  const handleUseCurrentLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          setFormData({
+            ...formData,
+            latitude: latitude.toFixed(8),
+            longitude: longitude.toFixed(8),
+          });
+          updatePinCoordinates({ lat: latitude, lng: longitude });
+          setIsConfirmed(true);
+        },
+        (error) => {
+          console.error('Error retrieving location:', error);
+        }
+      );
+    } else {
+      console.error('Geolocation is not supported by this browser.');
+    }
+  };
+
   const searchUsers = debounce(async (query) => {
     if (query.length < 3) {
       setShowSuggestions(false);
@@ -167,6 +189,9 @@ const ClimbForm = ({ pinCoordinates, updatePinCoordinates }) => {
             <button type="button" onClick={handleConfirmCoordinates} style={buttonStyle}>Confirm</button>
           )}
         </div>
+      </div>
+      <div style={{ marginTop: '10px', textAlign: 'center' }}>
+        <button type="button" onClick={handleUseCurrentLocation} style={buttonStyle}>Use Current Location</button>
       </div>
       <div>
         <label style={requiredLabelStyle}><span style={requiredStarStyle}>*</span> Name:</label>
