@@ -124,9 +124,19 @@ class Log(LogBase):
     class Config:
         from_attributes = True
 
-# New schema for displaying logs with usernames
-class LogWithUser(Log):
-    username: str  # Add the username field
+class LogWithUser(BaseModel):
+    id: int
+    climb_id: int
+    date: str
+    grade: str
+    comment: str
+    user_id: int
+    username: str
+    name: str  # Climb name
+    type: str  # Climb type
+
+    class Config:
+        from_attributes = True
 
 # Log ID Request Model
 class LogIDRequest(BaseModel):

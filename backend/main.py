@@ -2,7 +2,7 @@ import os
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
-from fastapi import FastAPI, Depends, HTTPException, status, UploadFile, File, Form
+from fastapi import FastAPI, Depends, HTTPException, status, UploadFile, File, Form, Query
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware
 from passlib.context import CryptContext
@@ -514,6 +514,103 @@ async def get_climb_logs(id: int, db: Session = Depends(get_db)):
         )
         for log in logs
     ]
+
+
+@app.get("/logs/recent", response_model=List[schemas.LogWithUser])
+def get_recent_ticks(limit: int = 20, db: Session = Depends(get_db)):
+    recent_ticks = (
+        db.query(models.Log, models.User.username, models.Climb.name, models.Climb.type)
+        .join(models.User, models.Log.user_id == models.User.id)
+        .join(models.Climb, models.Log.climb_id == models.Climb.id)
+        .order_by(models.Log.date.desc())
+        .limit(limit)
+        .all()
+    )
+
+    return [
+        schemas.LogWithUser(
+            id=log.id,
+            climb_id=log.climb_id,
+            date=log.date,
+            grade=log.grade,
+            comment=log.comment,
+            user_id=log.user_id,
+            username=username,  # Access the username directly from the tuple
+            name=climb_name,  # Access the climb name directly from the tuple
+            type=climb_type   # Access the climb type directly from the tuple
+        )
+        for log, username, climb_name, climb_type in recent_ticks
+    ]
+
+
+@app.get("/climbs/recent/first-ascents", response_model=List[schemas.Climb])
+def get_recent_first_ascents(limit: int = 10, db: Session = Depends(get_db)):
+    try:
+        recent_first_ascents = (
+            db.query(models.Climb)
+            .filter(models.Climb.first_ascensionist.isnot(None))
+            .order_by(models.Climb.first_ascent_date.desc())
+            .limit(limit)
+            .all()
+        )
+
+        # Convert `first_ascent_date` to string if it's a date object
+        for climb in recent_first_ascents:
+            if isinstance(climb.first_ascent_date, date):
+                climb.first_ascent_date = climb.first_ascent_date.isoformat()
+
+        return recent_first_ascents
+    except Exception as e:
+        logger.error(f"Error fetching recent first ascents: {e}")
+        raise HTTPException(status_code=500, detail="Error fetching recent first ascents")
+
+
+@app.get("/logs/recent_big_ticks", response_model=List[schemas.LogWithUser])
+def get_recent_big_ticks(limit: int = 5, db: Session = Depends(get_db)):
+    big_ticks = (
+        db.query(models.Log, models.User.username, models.Climb.name, models.Climb.type)
+        .join(models.User, models.Log.user_id == models.User.id)
+        .join(models.Climb, models.Log.climb_id == models.Climb.id)
+        .filter(
+            (models.Log.grade.ilike('V9%')) |
+            (models.Log.grade.ilike('V10%')) |
+            (models.Log.grade.ilike('V11%')) |
+            (models.Log.grade.ilike('V12%')) |
+            (models.Log.grade.ilike('V13%')) |
+            (models.Log.grade.ilike('V14%')) |
+            (models.Log.grade.ilike('V15%')) |
+            (models.Log.grade.ilike('V16%')) |
+            (models.Log.grade.ilike('V17%')) |
+            (models.Log.grade.ilike('8b%')) | 
+            (models.Log.grade.ilike('8b+%')) | 
+            (models.Log.grade.ilike('8c%')) | 
+            (models.Log.grade.ilike('8c+%')) |
+            (models.Log.grade.ilike('9a%')) | 
+            (models.Log.grade.ilike('9a+%')) | 
+            (models.Log.grade.ilike('9b%')) | 
+            (models.Log.grade.ilike('9b+%')) | 
+            (models.Log.grade.ilike('9c%'))
+        )
+        .order_by(models.Log.date.desc())
+        .limit(limit)
+        .all()
+    )
+
+    return [
+        schemas.LogWithUser(
+            id=log.id,
+            climb_id=log.climb_id,
+            date=log.date,
+            grade=log.grade,
+            comment=log.comment,
+            user_id=log.user_id,
+            username=username,
+            name=climb_name,
+            type=climb_type
+        )
+        for log, username, climb_name, climb_type in big_ticks
+    ]
+
 
 
 
