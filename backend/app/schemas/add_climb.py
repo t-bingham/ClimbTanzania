@@ -142,6 +142,14 @@ class LogWithUser(BaseModel):
 class LogIDRequest(BaseModel):
     log_id: int
 
-# New schema for User Response with climbs
-class UserWithClimbs(User):
-    climbs: List[Climb] = []
+class ClimbWithUser(BaseModel):
+    id: int
+    name: str
+    grade: Optional[str]
+    first_ascent_date: Optional[str]
+    type: Optional[str]
+    username: str  # Add the username field
+    user_id: int   # Add the user ID field
+
+    class Config:
+        from_attributes = True

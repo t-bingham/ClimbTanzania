@@ -517,7 +517,7 @@ async def get_climb_logs(id: int, db: Session = Depends(get_db)):
 
 
 @app.get("/logs/recent", response_model=List[schemas.LogWithUser])
-def get_recent_ticks(limit: int = 20, db: Session = Depends(get_db)):
+def get_recent_ticks(limit: int = 10, db: Session = Depends(get_db)):
     recent_ticks = (
         db.query(models.Log, models.User.username, models.Climb.name, models.Climb.type)
         .join(models.User, models.Log.user_id == models.User.id)
@@ -543,26 +543,33 @@ def get_recent_ticks(limit: int = 20, db: Session = Depends(get_db)):
     ]
 
 
-@app.get("/climbs/recent/first-ascents", response_model=List[schemas.Climb])
-def get_recent_first_ascents(limit: int = 10, db: Session = Depends(get_db)):
+@app.get("/climbs/recent/first-ascents", response_model=List[schemas.ClimbWithUser])
+def get_recent_first_ascents(limit: int = 5, db: Session = Depends(get_db)):
     try:
         recent_first_ascents = (
-            db.query(models.Climb)
+            db.query(models.Climb, models.User.username, models.User.id)
+            .join(models.User, models.Climb.first_ascensionist == models.User.username)
             .filter(models.Climb.first_ascensionist.isnot(None))
             .order_by(models.Climb.first_ascent_date.desc())
             .limit(limit)
             .all()
         )
 
-        # Convert `first_ascent_date` to string if it's a date object
-        for climb in recent_first_ascents:
-            if isinstance(climb.first_ascent_date, date):
-                climb.first_ascent_date = climb.first_ascent_date.isoformat()
-
-        return recent_first_ascents
+        return [
+            schemas.ClimbWithUser(
+                id=climb.id,
+                name=climb.name,
+                grade=climb.grade,
+                first_ascent_date=climb.first_ascent_date.isoformat() if climb.first_ascent_date else None,
+                type=climb.type,
+                username=username,
+                user_id=user_id
+            )
+            for climb, username, user_id in recent_first_ascents
+        ]
     except Exception as e:
         logger.error(f"Error fetching recent first ascents: {e}")
-        raise HTTPException(status_code=500, detail="Error fetching recent first ascents")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
 
 
 @app.get("/logs/recent_big_ticks", response_model=List[schemas.LogWithUser])

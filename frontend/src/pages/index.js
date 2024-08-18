@@ -11,7 +11,7 @@ function Home() {
   useEffect(() => {
     const fetchRecentTicks = async () => {
       try {
-        const response = await axios.get('http://localhost:8000/logs/recent?limit=20');
+        const response = await axios.get('http://localhost:8000/logs/recent?limit=10');
         setRecentTicks(response.data);
       } catch (error) {
         console.error('Error fetching recent ticks:', error);
@@ -20,7 +20,7 @@ function Home() {
 
     const fetchRecentFirstAscents = async () => {
       try {
-        const response = await axios.get('http://localhost:8000/climbs/recent/first-ascents?limit=10');
+        const response = await axios.get('http://localhost:8000/climbs/recent/first-ascents?limit=5');
         setRecentFirstAscents(response.data);
       } catch (error) {
         console.error('Error fetching recent first ascents:', error);
@@ -89,15 +89,21 @@ function Home() {
             <table style={styles.table}>
               <thead>
                 <tr>
+                  <th>User</th>
                   <th>Name</th>
                   <th>Grade</th>
-                  <th>Tick Date</th>
+                  <th>First Ascent Date</th>
                   <th>Type</th>
                 </tr>
               </thead>
               <tbody>
                 {recentFirstAscents.map(climb => (
                   <tr key={climb.id}>
+                    <td>
+                      <Link href={`/profile/${climb.user_id}`}>
+                        <span style={styles.link}>{climb.username}</span>
+                      </Link>
+                    </td>
                     <td>
                       <Link href={`/node/${climb.id}`}>
                         <span style={styles.link}>{climb.name}</span>
