@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Link from 'next/link';
-import MapFilters from '../components/map_filters';
+import MapFilters from '../components/climb_index_filters';
 import styles from '../styles/climbs.module.css';
 import withAuth from '../hoc/withAuth';
 import * as wellknown from 'wellknown';
@@ -9,6 +9,7 @@ import * as wellknown from 'wellknown';
 const Climbs = ({ initialClimbs }) => {
   const [climbs, setClimbs] = useState(initialClimbs);
   const [areas, setAreas] = useState([]);
+  const [hitlistClimbs, setHitlistClimbs] = useState([]); // State to store hitlist climbs
 
   useEffect(() => {
     const fetchAreas = async () => {
@@ -29,7 +30,23 @@ const Climbs = ({ initialClimbs }) => {
         console.error('Error fetching areas:', error);
       }
     };
+
+    const fetchHitlist = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await axios.get('http://localhost:8000/hitlist/', {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        setHitlistClimbs(response.data.map(climb => climb.id)); // Store hitlist climb IDs
+      } catch (error) {
+        console.error('Error fetching hitlist:', error);
+      }
+    };
+
     fetchAreas();
+    fetchHitlist();
   }, []);
 
   const applyFilters = async (selectedGrades, selectedAreas) => {
@@ -43,6 +60,30 @@ const Climbs = ({ initialClimbs }) => {
       setClimbs(response.data);
     } catch (error) {
       console.error('Error fetching filtered climbs:', error);
+    }
+  };
+
+  const toggleHitlist = async (climbId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const isOnHitlist = hitlistClimbs.includes(climbId);
+      const url = `http://localhost:8000/hitlist/${isOnHitlist ? 'remove' : 'add'}`;
+
+      await axios.post(
+        url,
+        { climb_id: climbId },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      setHitlistClimbs(prev =>
+        isOnHitlist ? prev.filter(id => id !== climbId) : [...prev, climbId]
+      );
+    } catch (error) {
+      console.error(`Error ${hitlistClimbs.includes(climbId) ? 'removing' : 'adding'} climb from/to hitlist:`, error);
     }
   };
 
@@ -67,7 +108,8 @@ const Climbs = ({ initialClimbs }) => {
                 <th className={styles.wideColumn}>Area</th>
                 <th className={styles.wideColumn}>First Ascensionist</th>
                 <th className={styles.narrowColumn}>First Ascent Year</th>
-                <th className={styles.wideColumn}>Type</th> {/* New column */}
+                <th className={styles.narrowColumn}>Type</th> {/* New column */}
+                <th className={styles.narrowColumn}>Hitlist</th> {/* New column for hitlist button */}
               </tr>
             </thead>
             <tbody>
@@ -85,6 +127,14 @@ const Climbs = ({ initialClimbs }) => {
                     {climb.first_ascent_date ? new Date(climb.first_ascent_date).getFullYear() : 'N/A'}
                   </td>
                   <td className={styles.wideColumn}>{climb.type || 'N/A'}</td> {/* New column */}
+                  <td className={styles.narrowColumn}>
+                    <button
+                      onClick={() => toggleHitlist(climb.id)}
+                      style={styles.hitButton}
+                    >
+                      {hitlistClimbs.includes(climb.id) ? 'Remove' : 'Add'}
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>

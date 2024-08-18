@@ -9,6 +9,7 @@ import * as wellknown from 'wellknown';
 const BoulderIndex = ({ initialClimbs }) => {
   const [climbs, setClimbs] = useState(initialClimbs);
   const [areas, setAreas] = useState([]);
+  const [hitlistClimbs, setHitlistClimbs] = useState([]); // State to store hitlist climbs
 
   useEffect(() => {
     const fetchAreas = async () => {
@@ -29,7 +30,23 @@ const BoulderIndex = ({ initialClimbs }) => {
         console.error('Error fetching areas:', error);
       }
     };
+
+    const fetchHitlist = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await axios.get('http://localhost:8000/hitlist/', {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        setHitlistClimbs(response.data.map(climb => climb.id)); // Store hitlist climb IDs
+      } catch (error) {
+        console.error('Error fetching hitlist:', error);
+      }
+    };
+
     fetchAreas();
+    fetchHitlist();
   }, []);
 
   const applyFilters = async (selectedGrades, selectedAreas) => {
@@ -44,6 +61,30 @@ const BoulderIndex = ({ initialClimbs }) => {
       setClimbs(response.data);
     } catch (error) {
       console.error('Error fetching filtered climbs:', error);
+    }
+  };
+
+  const toggleHitlist = async (climbId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const isOnHitlist = hitlistClimbs.includes(climbId);
+      const url = `http://localhost:8000/hitlist/${isOnHitlist ? 'remove' : 'add'}`;
+
+      await axios.post(
+        url,
+        { climb_id: climbId },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      setHitlistClimbs(prev =>
+        isOnHitlist ? prev.filter(id => id !== climbId) : [...prev, climbId]
+      );
+    } catch (error) {
+      console.error(`Error ${hitlistClimbs.includes(climbId) ? 'removing' : 'adding'} climb from/to hitlist:`, error);
     }
   };
 
@@ -67,6 +108,7 @@ const BoulderIndex = ({ initialClimbs }) => {
                 <th className={styles.wideColumn}>Area</th>
                 <th className={styles.wideColumn}>First Ascensionist</th>
                 <th className={styles.narrowColumn}>First Ascent Year</th>
+                <th className={styles.narrowColumn}>Hitlist</th> {/* New column for hitlist button */}
               </tr>
             </thead>
             <tbody>
@@ -82,6 +124,14 @@ const BoulderIndex = ({ initialClimbs }) => {
                   <td className={styles.wideColumn}>{climb.first_ascensionist || 'N/A'}</td>
                   <td className={styles.narrowColumn}>
                     {climb.first_ascent_date ? new Date(climb.first_ascent_date).getFullYear() : 'N/A'}
+                  </td>
+                  <td className={styles.narrowColumn}>
+                    <button
+                      onClick={() => toggleHitlist(climb.id)}
+                      style={styles.hitButton}
+                    >
+                      {hitlistClimbs.includes(climb.id) ? 'Remove' : 'Add'}
+                    </button>
                   </td>
                 </tr>
               ))}
