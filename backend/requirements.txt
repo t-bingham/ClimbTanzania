@@ -12,3 +12,4 @@ xmltodict
 geoalchemy2
 python-jose
 email-validator
+python-multipart
