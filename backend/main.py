@@ -509,15 +509,15 @@ async def get_climb_logs(id: int, db: Session = Depends(get_db)):
 
     return [
         schemas.LogWithUser(
-            id=log.Log.id,
-            climb_id=log.Log.climb_id,
-            date=log.Log.date,
-            grade=log.Log.grade,
-            comment=log.Log.comment,
-            user_id=log.Log.user_id,
-            username=log.username
+            id=log.id,
+            climb_id=log.climb_id,
+            date=log.date,
+            grade=log.grade,
+            comment=log.comment,
+            user_id=log.user_id,
+            username=username  # Access the username directly from the query result tuple
         )
-        for log in logs
+        for log, username in logs  # Unpack the tuple correctly
     ]
 
 
