@@ -10,7 +10,7 @@ const AddToHitlistButton = ({ climbId }) => {
         const token = localStorage.getItem('token');
         if (!token) return;
 
-        const response = await axios.get('http://localhost:8000/hitlist/', {
+        const response = await axios.get('${process.env.NEXT_PUBLIC_API_URL}/hitlist/', {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -35,8 +35,8 @@ const AddToHitlistButton = ({ climbId }) => {
       }
 
       const url = isOnHitlist
-        ? `http://localhost:8000/hitlist/remove/`
-        : `http://localhost:8000/hitlist/`;
+        ? `${process.env.NEXT_PUBLIC_API_URL}/hitlist/remove/`
+        : `${process.env.NEXT_PUBLIC_API_URL}/hitlist/`;
 
       await axios.post(
         url,

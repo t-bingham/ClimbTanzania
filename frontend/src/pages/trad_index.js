@@ -17,7 +17,7 @@ const TradIndex = ({ initialClimbs, initialPage }) => {
   useEffect(() => {
     const fetchAreas = async () => {
       try {
-        const response = await axios.get('http://localhost:8000/areas/');
+        const response = await axios.get('${process.env.NEXT_PUBLIC_API_URL}/areas/');
         const parsedAreas = response.data
           .filter(area => area.polygon)
           .map(area => {
@@ -37,7 +37,7 @@ const TradIndex = ({ initialClimbs, initialPage }) => {
     const fetchHitlist = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await axios.get('http://localhost:8000/hitlist/', {
+        const response = await axios.get('${process.env.NEXT_PUBLIC_API_URL}/hitlist/', {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -50,7 +50,7 @@ const TradIndex = ({ initialClimbs, initialPage }) => {
 
     const fetchUsers = async () => {
       try {
-        const response = await axios.get('http://localhost:8000/users/');
+        const response = await axios.get('${process.env.NEXT_PUBLIC_API_URL}/users/');
         const usersData = response.data.reduce((acc, user) => {
           acc[user.username] = user.id;
           return acc;
@@ -68,7 +68,7 @@ const TradIndex = ({ initialClimbs, initialPage }) => {
 
   const applyFilters = async (selectedGrades, selectedAreas) => {
     try {
-      const response = await axios.get('http://localhost:8000/climbs/', {
+      const response = await axios.get('${process.env.NEXT_PUBLIC_API_URL}/climbs/', {
         params: {
           type: 'Trad',
           grades: selectedGrades.join(','),
@@ -89,7 +89,7 @@ const TradIndex = ({ initialClimbs, initialPage }) => {
     try {
       const token = localStorage.getItem('token');
       const isOnHitlist = hitlistClimbs.includes(climbId);
-      const url = `http://localhost:8000/hitlist/${isOnHitlist ? 'remove' : 'add'}`;
+      const url = `${process.env.NEXT_PUBLIC_API_URL}/hitlist/${isOnHitlist ? 'remove' : 'add'}`;
 
       await axios.post(
         url,
@@ -111,7 +111,7 @@ const TradIndex = ({ initialClimbs, initialPage }) => {
 
   const loadPage = async (newPage) => {
     try {
-      const response = await axios.get('http://localhost:8000/climbs/', {
+      const response = await axios.get('${process.env.NEXT_PUBLIC_API_URL}/climbs/', {
         params: {
           type: 'Trad',
           skip: (newPage - 1) * 25,
@@ -209,7 +209,7 @@ const TradIndex = ({ initialClimbs, initialPage }) => {
 
 export async function getServerSideProps() {
   try {
-    const response = await axios.get('http://localhost:8000/climbs/', {
+    const response = await axios.get('${process.env.NEXT_PUBLIC_API_URL}/climbs/', {
       params: {
         type: 'Trad',
         skip: 0,

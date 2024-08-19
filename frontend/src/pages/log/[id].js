@@ -15,7 +15,7 @@ const LogPage = ({ climb }) => {
     try {
       const token = localStorage.getItem('token');
       await axios.post(
-        'http://localhost:8000/logs/add',
+        '${process.env.NEXT_PUBLIC_API_URL}/logs/add',
         {
           climb_id: climb.id,
           ...logData,
@@ -89,7 +89,7 @@ const LogPage = ({ climb }) => {
 export async function getServerSideProps(context) {
   const { id } = context.params;
   try {
-    const response = await axios.get(`http://localhost:8000/climbs/${id}`);
+    const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/climbs/${id}`);
     return {
       props: {
         climb: response.data,

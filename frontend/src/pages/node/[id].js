@@ -33,7 +33,7 @@ const ClimbDetail = ({ climb }) => {
       try {
         const token = localStorage.getItem('token');
 
-        const ticklistResponse = await axios.get('http://localhost:8000/ticklist/', {
+        const ticklistResponse = await axios.get('${process.env.NEXT_PUBLIC_API_URL}/ticklist/', {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -41,7 +41,7 @@ const ClimbDetail = ({ climb }) => {
         const ticklist = ticklistResponse.data;
         setIsOnTicklist(ticklist.some(item => item.id === climb.id));
 
-        const hitlistResponse = await axios.get('http://localhost:8000/hitlist/', {
+        const hitlistResponse = await axios.get('${process.env.NEXT_PUBLIC_API_URL}/hitlist/', {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -49,10 +49,10 @@ const ClimbDetail = ({ climb }) => {
         const hitlist = hitlistResponse.data;
         setIsOnHitlist(hitlist.some(item => item.id === climb.id));
 
-        const logsResponse = await axios.get(`http://localhost:8000/climbs/${id}/logs`);
+        const logsResponse = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/climbs/${id}/logs`);
         setLogs(logsResponse.data);
 
-        const usersResponse = await axios.get('http://localhost:8000/users/');
+        const usersResponse = await axios.get('${process.env.NEXT_PUBLIC_API_URL}/users/');
         const usersData = usersResponse.data.reduce((acc, user) => {
           acc[user.username] = user.id;
           return acc;
@@ -70,7 +70,7 @@ const ClimbDetail = ({ climb }) => {
     try {
       const token = localStorage.getItem('token');
       const isRemoving = isOnTicklist;
-      const url = `http://localhost:8000/ticklist/${isRemoving ? 'remove' : 'add'}`;
+      const url = `${process.env.NEXT_PUBLIC_API_URL}/ticklist/${isRemoving ? 'remove' : 'add'}`;
   
       const response = await axios.post(
         url,
@@ -86,7 +86,7 @@ const ClimbDetail = ({ climb }) => {
         router.push(`/log/${climb.id}`);
       } else {
         const logResponse = await axios.post(
-          'http://localhost:8000/logs/remove',
+          '${process.env.NEXT_PUBLIC_API_URL}/logs/remove',
           { climb_id: climb.id },
           {
             headers: {
@@ -106,7 +106,7 @@ const ClimbDetail = ({ climb }) => {
   const toggleHitlist = async () => {
     try {
       const token = localStorage.getItem('token');
-      const url = `http://localhost:8000/hitlist/${isOnHitlist ? 'remove' : 'add'}`;
+      const url = `${process.env.NEXT_PUBLIC_API_URL}/hitlist/${isOnHitlist ? 'remove' : 'add'}`;
       const response = await axios.post(
         url,
         { climb_id: climb.id },
@@ -196,7 +196,7 @@ const ClimbDetail = ({ climb }) => {
 export async function getServerSideProps(context) {
   const { id } = context.params;
   try {
-    const response = await axios.get(`http://localhost:8000/climbs/${id}`);
+    const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/climbs/${id}`);
     return {
       props: {
         climb: response.data,

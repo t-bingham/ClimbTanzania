@@ -12,7 +12,7 @@ function Home() {
   useEffect(() => {
     const fetchRecentTicks = async () => {
       try {
-        const response = await axios.get('http://localhost:8000/logs/recent?limit=10');
+        const response = await axios.get('${process.env.NEXT_PUBLIC_API_URL}/logs/recent?limit=10');
         setRecentTicks(response.data);
       } catch (error) {
         console.error('Error fetching recent ticks:', error);
@@ -21,7 +21,7 @@ function Home() {
 
     const fetchRecentFirstAscents = async () => {
       try {
-        const response = await axios.get('http://localhost:8000/climbs/recent/first-ascents?limit=5');
+        const response = await axios.get('${process.env.NEXT_PUBLIC_API_URL}/climbs/recent/first-ascents?limit=5');
         setRecentFirstAscents(response.data);
       } catch (error) {
         console.error('Error fetching recent first ascents:', error);
@@ -30,7 +30,7 @@ function Home() {
 
     const fetchRecentBigTicks = async () => {
       try {
-        const response = await axios.get('http://localhost:8000/logs/recent_big_ticks?limit=5');
+        const response = await axios.get('${process.env.NEXT_PUBLIC_API_URL}/logs/recent_big_ticks?limit=5');
         setRecentBigTicks(response.data);
       } catch (error) {
         console.error('Error fetching recent big ticks:', error);

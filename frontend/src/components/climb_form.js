@@ -59,7 +59,7 @@ const ClimbForm = ({ pinCoordinates, updatePinCoordinates }) => {
     e.preventDefault();
     console.log('Submitting form data:', formData); // Log form data
     try {
-      const response = await axios.post('http://localhost:8000/climbs/', formData, {
+      const response = await axios.post('${process.env.NEXT_PUBLIC_API_URL}/climbs/', formData, {
         headers: {
           'Content-Type': 'application/json',
         },
@@ -113,7 +113,7 @@ const ClimbForm = ({ pinCoordinates, updatePinCoordinates }) => {
       return;
     }
     try {
-      const response = await axios.get(`http://localhost:8000/users?search=${query}`);
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/users?search=${query}`);
       setUserSuggestions(response.data);
       setShowSuggestions(true);
     } catch (error) {

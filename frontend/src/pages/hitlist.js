@@ -11,7 +11,7 @@ const Hitlist = () => {
     const fetchHitlist = async () => {
       const token = localStorage.getItem('token');
       try {
-        const response = await axios.get('http://localhost:8000/hitlist/', {
+        const response = await axios.get('${process.env.NEXT_PUBLIC_API_URL}/hitlist/', {
           headers: {
             Authorization: `Bearer ${token}`,
           },

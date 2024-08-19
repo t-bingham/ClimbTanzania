@@ -84,9 +84,9 @@ const ProfilePage = ({ user, initialClimbs, initialFirstAscents }) => {
 
 export async function getServerSideProps({ params }) {
   try {
-    const userResponse = await axios.get(`http://localhost:8000/users/${params.id}`);
-    const ticksResponse = await axios.get(`http://localhost:8000/users/${params.id}/ticks`);
-    const firstAscentsResponse = await axios.get(`http://localhost:8000/climbs/?first_ascensionist=${userResponse.data.username}`);
+    const userResponse = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/users/${params.id}`);
+    const ticksResponse = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/users/${params.id}/ticks`);
+    const firstAscentsResponse = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/climbs/?first_ascensionist=${userResponse.data.username}`);
 
     return {
       props: {
