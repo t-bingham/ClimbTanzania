@@ -15,7 +15,7 @@ const Header = () => {
     // Add the favicon to the document head
     const link = document.createElement('link');
     link.rel = 'icon';
-    link.href = '/favicon.png'; // Adjust this path if needed
+    link.href = '/favicon_v2.png'; // Adjust this path if needed
     document.head.appendChild(link);
 
     // Clean up the effect if the header is ever unmounted
