@@ -487,15 +487,15 @@ async def add_log(request: schemas.LogCreate, db: Session = Depends(get_db), cur
 async def remove_log(request: schemas.ClimbIDRequest, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
     try:
         log = db.query(models.Log).filter(models.Log.user_id == current_user.id, models.Log.climb_id == request.climb_id).first()
-        if not log:
-            raise HTTPException(status_code=404, detail="Log not found")
+        
+        if log:
+            db.delete(log)
+            db.commit()
 
-        db.delete(log)
-        db.commit()
-
-        return {"msg": "Log removed successfully"}
+        return {"msg": "Log removed successfully" if log else "Log not found, but no error since it might not have been logged"}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+
 
 
 @app.get("/climbs/{id}/logs", response_model=List[schemas.LogWithUser])

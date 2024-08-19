@@ -85,18 +85,26 @@ const ClimbDetail = ({ climb }) => {
       if (!isRemoving) {
         router.push(`/log/${climb.id}`);
       } else {
-        const logResponse = await axios.post(
-          `${process.env.NEXT_PUBLIC_API_URL}/logs/remove`,
-          { climb_id: climb.id },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`
+        // Attempt to remove the log if it exists
+        try {
+          const logResponse = await axios.post(
+            `${process.env.NEXT_PUBLIC_API_URL}/logs/remove`,
+            { climb_id: climb.id },
+            {
+              headers: {
+                Authorization: `Bearer ${token}`
+              }
             }
+          );
+          
+          // If log was successfully removed or doesn't exist
+          if (logResponse.data.msg.includes("Log removed successfully") || logResponse.data.msg.includes("Log not found")) {
+            setIsOnTicklist(false);
+            setLogs(logs.filter(log => log.climb_id !== climb.id));
           }
-        );
-  
-        setIsOnTicklist(false);
-        setLogs(logs.filter(log => log.climb_id !== climb.id));
+        } catch (logError) {
+          console.warn("Log not found, but untick was successful.");
+        }
       }
     } catch (error) {
       console.error(`Error ${isOnTicklist ? 'removing' : 'adding'} climb from/to ticklist:`, error);
