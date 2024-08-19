@@ -515,7 +515,9 @@ async def get_climb_logs(id: int, db: Session = Depends(get_db)):
             grade=log.grade,
             comment=log.comment,
             user_id=log.user_id,
-            username=username  # Access the username directly from the query result tuple
+            username=username,  # Access the username directly from the query result tuple
+            name=log.climb.name,  # Assuming the climb name is fetched with the log
+            type=log.climb.type  # Assuming the climb type is fetched with the log
         )
         for log, username in logs  # Unpack the tuple correctly
     ]
