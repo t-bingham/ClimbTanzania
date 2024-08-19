@@ -1,6 +1,10 @@
 from sqlalchemy import create_engine, text
+import os
+from dotenv import load_dotenv
 
-DATABASE_URL = "postgresql+psycopg2://climb_admin:3foura11@localhost/climbs_db"
+load_dotenv()
+
+DATABASE_URL = DATABASE_URL = os.getenv('DATABASE_URL')
 
 try:
     engine = create_engine(DATABASE_URL)

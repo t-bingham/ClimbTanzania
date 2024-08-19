@@ -68,7 +68,7 @@ Before you begin, ensure you have met the following requirements:
    npm run dev
    ```
 
-3. Open your browser and navigate to `http://localhost:3000`.
+3. Open your browser and navigate to `https://climbtanzania.com`.
 
 ## Project Structure
 

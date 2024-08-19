@@ -38,8 +38,8 @@ logger = logging.getLogger(__name__)
 
 # CORS configuration
 origins = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000"
+    "https://climb-tanzania-git-main-thomas-binghams-projects.vercel.app",
+    "https://climbtanzania.com"
 ]
 
 app.add_middleware(
