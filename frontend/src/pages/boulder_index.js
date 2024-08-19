@@ -17,7 +17,7 @@ const BoulderIndex = ({ initialClimbs, initialPage }) => {
   useEffect(() => {
     const fetchAreas = async () => {
       try {
-        const response = await axios.get('${process.env.NEXT_PUBLIC_API_URL}/areas/');
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/areas/`);
         const parsedAreas = response.data
           .filter(area => area.polygon)
           .map(area => {
@@ -37,7 +37,7 @@ const BoulderIndex = ({ initialClimbs, initialPage }) => {
     const fetchHitlist = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await axios.get('${process.env.NEXT_PUBLIC_API_URL}/hitlist/', {
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/hitlist/`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -50,7 +50,7 @@ const BoulderIndex = ({ initialClimbs, initialPage }) => {
 
     const fetchUsers = async () => {
       try {
-        const response = await axios.get('${process.env.NEXT_PUBLIC_API_URL}/users/');
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/users/`);
         setUsers(response.data);
       } catch (error) {
         console.error('Error fetching users:', error);
@@ -64,7 +64,7 @@ const BoulderIndex = ({ initialClimbs, initialPage }) => {
 
   const applyFilters = async (selectedGrades, selectedAreas) => {
     try {
-      const response = await axios.get('${process.env.NEXT_PUBLIC_API_URL}/climbs/', {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/climbs/`, {
         params: {
           type: 'Boulder',
           grades: selectedGrades.join(','),
@@ -115,7 +115,7 @@ const BoulderIndex = ({ initialClimbs, initialPage }) => {
 
   const loadPage = async (newPage) => {
     try {
-      const response = await axios.get('${process.env.NEXT_PUBLIC_API_URL}/climbs/', {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/climbs/`, {
         params: {
           type: 'Boulder',
           skip: (newPage - 1) * 25,
@@ -207,7 +207,7 @@ const BoulderIndex = ({ initialClimbs, initialPage }) => {
 
 export async function getServerSideProps() {
   try {
-    const response = await axios.get('${process.env.NEXT_PUBLIC_API_URL}/climbs/', {
+    const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/climbs/`, {
       params: {
         type: 'Boulder',
         skip: 0,

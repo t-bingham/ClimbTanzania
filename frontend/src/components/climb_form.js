@@ -59,7 +59,7 @@ const ClimbForm = ({ pinCoordinates, updatePinCoordinates }) => {
     e.preventDefault();
     console.log('Submitting form data:', formData); // Log form data
     try {
-      const response = await axios.post('${process.env.NEXT_PUBLIC_API_URL}/climbs/', formData, {
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/climbs/`, formData, {
         headers: {
           'Content-Type': 'application/json',
         },

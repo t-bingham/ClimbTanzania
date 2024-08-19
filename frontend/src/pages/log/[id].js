@@ -15,7 +15,7 @@ const LogPage = ({ climb }) => {
     try {
       const token = localStorage.getItem('token');
       await axios.post(
-        '${process.env.NEXT_PUBLIC_API_URL}/logs/add',
+        `${process.env.NEXT_PUBLIC_API_URL}/logs/add`,
         {
           climb_id: climb.id,
           ...logData,

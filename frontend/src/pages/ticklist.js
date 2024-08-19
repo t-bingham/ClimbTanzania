@@ -11,7 +11,7 @@ const Ticklist = () => {
     const fetchTicklist = async () => {
       try {
         const token = localStorage.getItem('token'); // Retrieve the token from storage
-        const response = await axios.get('${process.env.NEXT_PUBLIC_API_URL}/ticklist/', {
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/ticklist/`, {
           headers: {
             Authorization: `Bearer ${token}` // Include the token in the header
           }

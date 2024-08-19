@@ -33,7 +33,7 @@ const ClimbDetail = ({ climb }) => {
       try {
         const token = localStorage.getItem('token');
 
-        const ticklistResponse = await axios.get('${process.env.NEXT_PUBLIC_API_URL}/ticklist/', {
+        const ticklistResponse = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/ticklist/`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -41,7 +41,7 @@ const ClimbDetail = ({ climb }) => {
         const ticklist = ticklistResponse.data;
         setIsOnTicklist(ticklist.some(item => item.id === climb.id));
 
-        const hitlistResponse = await axios.get('${process.env.NEXT_PUBLIC_API_URL}/hitlist/', {
+        const hitlistResponse = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/hitlist/`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -52,7 +52,7 @@ const ClimbDetail = ({ climb }) => {
         const logsResponse = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/climbs/${id}/logs`);
         setLogs(logsResponse.data);
 
-        const usersResponse = await axios.get('${process.env.NEXT_PUBLIC_API_URL}/users/');
+        const usersResponse = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/users/`);
         const usersData = usersResponse.data.reduce((acc, user) => {
           acc[user.username] = user.id;
           return acc;
@@ -86,7 +86,7 @@ const ClimbDetail = ({ climb }) => {
         router.push(`/log/${climb.id}`);
       } else {
         const logResponse = await axios.post(
-          '${process.env.NEXT_PUBLIC_API_URL}/logs/remove',
+          `${process.env.NEXT_PUBLIC_API_URL}/logs/remove`,
           { climb_id: climb.id },
           {
             headers: {

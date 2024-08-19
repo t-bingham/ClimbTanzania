@@ -10,7 +10,7 @@ const AddToHitlistButton = ({ climbId }) => {
         const token = localStorage.getItem('token');
         if (!token) return;
 
-        const response = await axios.get('${process.env.NEXT_PUBLIC_API_URL}/hitlist/', {
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/hitlist/`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },

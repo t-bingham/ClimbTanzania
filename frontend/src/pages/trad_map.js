@@ -17,7 +17,7 @@ const TradMap = ({ initialClimbs, initialSelectedGrades, initialSelectedAreas })
   useEffect(() => {
     const fetchPolygons = async () => {
       try {
-        const response = await axios.get('${process.env.NEXT_PUBLIC_API_URL}/areas/');
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/areas/`);
         console.log('Raw areas data:', response.data);  // Log the raw response
 
         const parsedPolygons = response.data
@@ -48,7 +48,7 @@ const TradMap = ({ initialClimbs, initialSelectedGrades, initialSelectedAreas })
     try {
       const areasToQuery = selectedAreas.includes("Independent") ? [...selectedAreas] : selectedAreas;
 
-      const response = await axios.get('${process.env.NEXT_PUBLIC_API_URL}/climbs/', {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/climbs/`, {
         params: {
           type: 'Trad',
           grades: selectedGrades.join(','),
@@ -96,7 +96,7 @@ const TradMap = ({ initialClimbs, initialSelectedGrades, initialSelectedAreas })
 
 export async function getServerSideProps() {
   try {
-    const response = await axios.get('${process.env.NEXT_PUBLIC_API_URL}/climbs/', {
+    const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/climbs/`, {
       params: {
         type: 'Trad'
       }

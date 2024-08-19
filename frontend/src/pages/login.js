@@ -10,7 +10,7 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch('${process.env.NEXT_PUBLIC_API_URL}/token', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/token`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
@@ -24,7 +24,7 @@ export default function Login() {
         const data = await res.json();
         localStorage.setItem('token', data.access_token);
   
-        const profileRes = await fetch('${process.env.NEXT_PUBLIC_API_URL}/users/me', {
+        const profileRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/me`, {
           headers: {
             'Authorization': `Bearer ${data.access_token}`,
           },

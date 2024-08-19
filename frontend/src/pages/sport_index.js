@@ -17,7 +17,7 @@ const SportIndex = ({ initialClimbs, initialPage }) => {
   useEffect(() => {
     const fetchAreas = async () => {
       try {
-        const response = await axios.get('${process.env.NEXT_PUBLIC_API_URL}/areas/');
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/areas/`);
         const parsedAreas = response.data
           .filter(area => area.polygon)
           .map(area => {
@@ -37,7 +37,7 @@ const SportIndex = ({ initialClimbs, initialPage }) => {
     const fetchHitlist = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await axios.get('${process.env.NEXT_PUBLIC_API_URL}/hitlist/', {
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/hitlist/`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -50,7 +50,7 @@ const SportIndex = ({ initialClimbs, initialPage }) => {
 
     const fetchUsers = async () => {
       try {
-        const response = await axios.get('${process.env.NEXT_PUBLIC_API_URL}/users/');
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/users/`);
         const usersData = response.data.reduce((acc, user) => {
           acc[user.username] = user.id;
           return acc;
@@ -68,7 +68,7 @@ const SportIndex = ({ initialClimbs, initialPage }) => {
 
   const applyFilters = async (selectedGrades, selectedAreas) => {
     try {
-      const response = await axios.get('${process.env.NEXT_PUBLIC_API_URL}/climbs/', {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/climbs/`, {
         params: {
           type: 'Sport',
           grades: selectedGrades.join(','),
@@ -111,7 +111,7 @@ const SportIndex = ({ initialClimbs, initialPage }) => {
 
   const loadPage = async (newPage) => {
     try {
-      const response = await axios.get('${process.env.NEXT_PUBLIC_API_URL}/climbs/', {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/climbs/`, {
         params: {
           type: 'Sport',
           skip: (newPage - 1) * 25,
@@ -209,7 +209,7 @@ const SportIndex = ({ initialClimbs, initialPage }) => {
 
 export async function getServerSideProps() {
   try {
-    const response = await axios.get('${process.env.NEXT_PUBLIC_API_URL}/climbs/', {
+    const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/climbs/`, {
       params: {
         type: 'Sport',
         skip: 0,
