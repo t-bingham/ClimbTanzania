@@ -108,12 +108,14 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = 
     )
     return {"access_token": access_token, "token_type": "bearer"}
 
+
 @app.get("/users/me")
 async def read_users_me(current_user: models.User = Depends(get_current_user)):
     return current_user
 
 # Initialize the database models
 models.Base.metadata.create_all(bind=engine)
+
 
 @app.get("/users/", response_model=List[schemas.User])
 def get_users(search: str = '', db: Session = Depends(get_db)):
@@ -128,6 +130,7 @@ def get_user_by_id(id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="User not found")
     return user
 
+
 @app.get("/users/{id}/ticks", response_model=List[schemas.Climb])
 def get_user_ticks(id: int, db: Session = Depends(get_db)):
     ticklist_climbs = (
@@ -138,7 +141,7 @@ def get_user_ticks(id: int, db: Session = Depends(get_db)):
     )
 
     for climb in ticklist_climbs:
-        if isinstance(climb.first_ascent_date, date):
+        if isinstance(climb.first_ascent_date, (date, datetime)):
             climb.first_ascent_date = climb.first_ascent_date.isoformat()
 
     return ticklist_climbs
@@ -208,7 +211,7 @@ def create_climb(climb: schemas.ClimbCreate, db: Session = Depends(get_db)):
         db.refresh(db_climb)
 
         # Convert first_ascent_date to string if it's a date object
-        if isinstance(db_climb.first_ascent_date, date):
+        if isinstance(db_climb.first_ascent_date, (date, datetime)):
             db_climb.first_ascent_date = db_climb.first_ascent_date.isoformat()
 
         logger.debug(f"Inserted climb data: {db_climb}")  # Debugging log
@@ -263,7 +266,7 @@ def read_climbs(skip: int = 0, limit: int = 25, grades: str = None, areas: str =
 
     # Convert date fields to strings
     for climb in climbs:
-        if climb.first_ascent_date:
+        if isinstance(climb.first_ascent_date, (date, datetime)):
             climb.first_ascent_date = climb.first_ascent_date.isoformat()
 
     return climbs
@@ -277,13 +280,14 @@ def read_climb(id: int, db: Session = Depends(get_db)):
             raise HTTPException(status_code=404, detail="Climb not found")
         
         # Convert first_ascent_date to string if it's a date object
-        if isinstance(climb.first_ascent_date, date):
+        if isinstance(climb.first_ascent_date, (date, datetime)):
             climb.first_ascent_date = climb.first_ascent_date.isoformat()
 
         return climb
     except Exception as e:
         logger.error(f"Error reading climb with id {id}: {e}")
         raise HTTPException(status_code=500, detail=f"Error reading climb with id {id}: {e}")
+
 
 # KML Upload and Area Assignment
 @app.post("/upload_kml")
@@ -319,6 +323,7 @@ async def upload_kml(file: UploadFile = File(...), db: Session = Depends(get_db)
 
     return {"filename": file.filename}
 
+
 @app.get("/areas/", response_model=List[schemas.Area])
 def get_areas(db: Session = Depends(get_db)):
     areas = db.query(
@@ -337,6 +342,7 @@ def get_areas(db: Session = Depends(get_db)):
 
     print(f"Final polygons list: {polygons}")
     return polygons
+
 
 @app.post("/assign_existing_climbs/")
 def assign_existing_climbs(db: Session = Depends(get_db)):
@@ -391,7 +397,7 @@ async def add_to_ticklist(request: schemas.ClimbIDRequest, db: Session = Depends
         return {"msg": "Climb added to ticklist"}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
-    
+
 
 @app.post("/ticklist/remove")
 async def remove_from_ticklist(request: schemas.ClimbIDRequest, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
@@ -414,7 +420,6 @@ async def remove_from_ticklist(request: schemas.ClimbIDRequest, db: Session = De
         raise HTTPException(status_code=400, detail=str(e))
 
 
-
 @app.get("/ticklist/", response_model=List[schemas.Climb])
 def get_ticklist(current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
     ticklist_climbs = (
@@ -426,7 +431,7 @@ def get_ticklist(current_user: models.User = Depends(get_current_user), db: Sess
 
 
     for climb in ticklist_climbs:
-        if isinstance(climb.first_ascent_date, date):
+        if isinstance(climb.first_ascent_date, (date, datetime)):
             climb.first_ascent_date = climb.first_ascent_date.isoformat()
 
     return ticklist_climbs
@@ -560,7 +565,7 @@ def get_recent_first_ascents(limit: int = 5, db: Session = Depends(get_db)):
                 id=climb.id,
                 name=climb.name,
                 grade=climb.grade,
-                first_ascent_date=climb.first_ascent_date.isoformat() if climb.first_ascent_date else None,
+                first_ascent_date=climb.first_ascent_date.isoformat() if isinstance(climb.first_ascent_date, (date, datetime)) else climb.first_ascent_date,
                 type=climb.type,
                 username=username,
                 user_id=user_id
@@ -619,8 +624,6 @@ def get_recent_big_ticks(limit: int = 5, db: Session = Depends(get_db)):
     ]
 
 
-
-
 @app.post("/hitlist/add")
 async def add_to_hitlist(request: schemas.HitListCreate, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
     try:
@@ -674,7 +677,7 @@ def get_hitlist(current_user: models.User = Depends(get_current_user), db: Sessi
     )
 
     for climb in hitlist_climbs:
-        if isinstance(climb.first_ascent_date, date):
+        if isinstance(climb.first_ascent_date, (date, datetime)):
             climb.first_ascent_date = climb.first_ascent_date.isoformat()
 
     return hitlist_climbs
@@ -717,7 +720,7 @@ def to_dict(self):
         "grade": self.grade,
         "quality": self.quality,
         "first_ascensionist": self.first_ascensionist,
-        "first_ascent_date": self.first_ascent_date.isoformat(),
+        "first_ascent_date": self.first_ascent_date.isoformat() if isinstance(self.first_ascent_date, (date, datetime)) else self.first_ascent_date,
         "area": self.area,
         "description": self.description,
         "tags": self.tags,
