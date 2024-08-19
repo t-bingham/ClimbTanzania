@@ -11,6 +11,17 @@ const Header = () => {
   useEffect(() => {
     const storedUserId = localStorage.getItem('userId');
     setUserId(storedUserId);
+
+    // Add the favicon to the document head
+    const link = document.createElement('link');
+    link.rel = 'icon';
+    link.href = '/favicon.png'; // Adjust this path if needed
+    document.head.appendChild(link);
+
+    // Clean up the effect if the header is ever unmounted
+    return () => {
+      document.head.removeChild(link);
+    };
   }, []);
 
   const handleLogout = () => {
